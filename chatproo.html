@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MyWA Final Pro</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js"></script>
+    <style>
+        :root { --green: #075e54; --light-green: #dcf8c6; --white: #ffffff; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #e5ddd5; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        header { background: var(--green); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 10; font-weight: bold; }
+        #contact-list { background: white; flex: 1; overflow-y: auto; }
+        .contact-item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; }
+        .avatar { width: 45px; height: 45px; background: #128c7e; border-radius: 50%; margin-right: 12px; display: flex; align-items: center; justify-content: center; color: white; }
+        #chat-screen { display: none; flex-direction: column; height: 100vh; position: fixed; inset: 0; background: #e5ddd5; z-index: 100; }
+        #messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; }
+        .bubble { max-width: 80%; padding: 8px 12px; margin: 5px 0; border-radius: 8px; font-size: 14px; position: relative; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
+        .sent { background: var(--light-green); align-self: flex-end; border-top-right-radius: 0; }
+        .received { background: var(--white); align-self: flex-start; border-top-left-radius: 0; }
+        .media-box { border: 1px solid #ddd; border-radius: 5px; overflow: hidden; margin-top: 5px; background: white; }
+        .media-box img { max-width: 100%; display: block; }
+        .media-box iframe { width: 100%; height: 150px; border: none; background: white; }
+        .btn-dl { display: block; text-align: center; padding: 8px; font-size: 11px; color: var(--green); text-decoration: none; font-weight: bold; background: #f9f9f9; border-top: 1px solid #ddd; }
+        footer { background: #f0f0f0; padding: 10px; display: flex; align-items: center; gap: 8px; }
+        footer input { flex: 1; padding: 12px; border-radius: 25px; border: none; outline: none; }
+        #call-ui { display: none; position: fixed; inset: 0; background: #075e54; color: white; z-index: 1000; flex-direction: column; align-items: center; justify-content: center; }
+    </style>
+</head>
+<body>
+
+<header>
+    <span>MyWA Messenger</span>
+    <span id="my-id" style="font-size: 11px; opacity: 0.8;">Memuat ID...</span>
+</header>
+
+<div id="contact-list">
+    <div id="contacts-container"></div>
+    <button onclick="addFriend()" style="width:100%; padding:15px; border:none; background:#eee; color:#075e54; font-weight:bold;">+ TAMBAH KONTAK</button>
+</div>
+
+<div id="chat-screen">
+    <header>
+        <div style="display:flex; align-items:center;">
+            <button onclick="closeChat()" style="background:none; border:none; color:white; font-size:20px; margin-right:10px;">←</button>
+            <div><span id="chat-title">Nama</span><br><small id="typing-status" style="display:none;">Sedang mengetik...</small></div>
+        </div>
+        <button onclick="startCall()" style="background:none; border:none; color:white; font-size:20px;">📞</button>
+    </header>
+    <div id="messages"></div>
+    <footer>
+        <button onclick="document.getElementById('file-input').click()" style="background:none; border:none; font-size:22px;">📎</button>
+        <input type="file" id="file-input" style="display:none" onchange="handleFile(this)">
+        <input type="text" id="input-msg" placeholder="Ketik pesan..." oninput="sendTyping()">
+        <button onclick="sendText()" style="background:#075e54; color:white; border:none; width:45px; height:45px; border-radius:50%;">➤</button>
+    </footer>
+</div>
+
+<div id="call-ui">
+    <h2 id="call-name">Nama</h2>
+    <p id="call-state">Memanggil...</p>
+    <button onclick="location.reload()" style="background:red; color:white; padding:15px 30px; border-radius:30px; border:none;">AKHIRI</button>
+</div>
+
+<script>
+    // SISTEM PERMANEN & NOTIFIKASI
+    let myId = localStorage.getItem('mywa_id') || "";
+    const peer = new Peer(myId);
+    let currentId = "", conn;
+    let chats = JSON.parse(localStorage.getItem('mywa_chats')) || {};
+
+    peer.on('open', id => {
+        myId = id;
+        localStorage.setItem('mywa_id', id);
+        document.getElementById('my-id').innerText = "ID: " + id;
+        if (Notification.permission !== 'granted') Notification.requestPermission();
+    });
+
+    function addFriend() {
+        let n = prompt("Nama:"), i = prompt("ID:");
+        if(n && i) {
+            let list = JSON.parse(localStorage.getItem('mywa_contacts')) || [];
+            list.push({id: i, name: n});
+            localStorage.setItem('mywa_contacts', JSON.stringify(list));
+            renderContacts();
+        }
+    }
+
+    function renderContacts() {
+        const container = document.getElementById('contacts-container');
+        container.innerHTML = `<div class="contact-item" onclick="openChat('BOT', 'Bot Penguji')"><div class="avatar">🤖</div><div><strong>Bot Penguji</strong></div></div>`;
+        let list = JSON.parse(localStorage.getItem('mywa_contacts')) || [];
+        list.forEach(c => {
+            const div = document.createElement('div');
+            div.className = 'contact-item';
+            div.innerHTML = `<div class="avatar">👤</div><div><strong>${c.name}</strong><br><small>${c.id}</small></div>`;
+            div.onclick = () => openChat(c.id, c.name);
+            container.appendChild(div);
+        });
+    }
+
+    function openChat(id, name) {
+        currentId = id;
+        document.getElementById('chat-title').innerText = name;
+        document.getElementById('chat-screen').style.display = 'flex';
+        loadMessages();
+        if(id !== 'BOT') {
+            conn = peer.connect(id);
+            conn.on('data', data => handleIncoming(data));
+        }
+    }
+
+    function handleIncoming(data) {
+        if(data.type === 'typing') {
+            document.getElementById('typing-status').style.display = 'block';
+            setTimeout(() => document.getElementById('typing-status').style.display = 'none', 2000);
+        } else {
+            showMsg(data, 'received');
+            saveMsg(currentId, data, 'received');
+            
+            // NOTIFIKASI BANNER & SUARA
+            new Audio('https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3').play();
+            if (Notification.permission === 'granted') {
+                new Notification(document.getElementById('chat-title').innerText, { body: data.content });
+            }
+        }
+    }
+
+    function sendText() {
+        const input = document.getElementById('input-msg');
+        if(!input.value) return;
+        const msg = { type: 'text', content: input.value, id: Date.now() };
+        processSend(msg);
+        input.value = "";
+    }
+
+    function handleFile(input) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const msg = { type: 'file', content: e.target.result, fileName: file.name, fileType: file.type, id: Date.now() };
+            processSend(msg);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function processSend(msg) {
+        showMsg(msg, 'sent');
+        saveMsg(currentId, msg, 'sent');
+        if(conn) conn.send(msg);
+        if(currentId === 'BOT') setTimeout(() => {
+            const reply = { type: 'text', content: "Pesan diterima Bot! ✅", id: Date.now() };
+            showMsg(reply, 'received');
+            saveMsg('BOT', reply, 'received');
+        }, 1000);
+    }
+
+    function showMsg(msg, side) {
+        const box = document.getElementById('messages');
+        const div = document.createElement('div');
+        div.className = `bubble ${side}`;
+        let html = msg.content;
+        if(msg.type === 'file') {
+            if(msg.fileType.startsWith('image/')) html = `<div class="media-box"><img src="${msg.content}"></div>`;
+            else if(msg.fileType.includes('html')) html = `<div class="media-box"><iframe src="${msg.content}"></iframe></div>`;
+            else html = `📄 ${msg.fileName}`;
+            html += `<a href="${msg.content}" download="${msg.fileName}" class="btn-dl">DOWNLOAD</a>`;
+        }
+        div.innerHTML = `${html} <div style="font-size:9px; text-align:right; opacity:0.6;">${new Date().getHours()}:${new Date().getMinutes()}</div>`;
+        box.appendChild(div);
+        box.scrollTop = box.scrollHeight;
+    }
+
+    function saveMsg(target, msg, side) {
+        if(!chats[target]) chats[target] = [];
+        chats[target].push({msg, side});
+        localStorage.setItem('mywa_chats', JSON.stringify(chats));
+    }
+
+    function loadMessages() {
+        document.getElementById('messages').innerHTML = "";
+        (chats[currentId] || []).forEach(h => showMsg(h.msg, h.side));
+    }
+
+    function sendTyping() { if(conn) conn.send({type: 'typing'}); }
+    function closeChat() { document.getElementById('chat-screen').style.display = 'none'; }
+    function startCall() { document.getElementById('call-ui').style.display = 'flex'; }
+
+    renderContacts();
+    peer.on('connection', c => {
+        conn = c;
+        conn.on('data', data => handleIncoming(data));
+        openChat(c.peer, "Pengirim Baru");
+    });
+</script>
+</body>
+</html>
