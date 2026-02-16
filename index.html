@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>MyWA Simple v15.1</title>
+    <title>MyWA Simple v15.2</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js"></script>
     <style>
         :root { --wa-green: #075e54; --wa-light: #25d366; --bg: #e5ddd5; }
@@ -22,32 +22,58 @@
         .sub-text { font-size: 13px; color: #444; margin-top: 5px; font-weight: bold; letter-spacing: 1px; }
 
         /* Contact List */
-        #main-ui { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        #main-ui { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
         #contact-list { flex: 1; overflow-y: auto; background: white; }
-        .contact-item { padding: 15px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.2s; }
+        .contact-item { padding: 15px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px; cursor: pointer; }
         .contact-item:active { background: #f5f5f5; }
         .avatar { width: 45px; height: 45px; background: var(--wa-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
 
-        /* Action Buttons */
-        .fab-add { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--wa-light); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 500; border: none; }
+        /* Tombol Add (Posisi Diperbaiki) */
+        .fab-add { 
+            position: absolute; 
+            bottom: 30px; 
+            right: 25px; 
+            width: 65px; 
+            height: 65px; 
+            background: var(--wa-light); 
+            color: white; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 35px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4); 
+            z-index: 999; 
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .fab-add:active { transform: scale(0.9); }
 
         /* Chat Screen */
-        #chat-screen { position: fixed; inset: 0; background: var(--bg); display: none; flex-direction: column; z-index: 1000; }
+        #chat-screen { position: fixed; inset: 0; background: var(--bg); display: none; flex-direction: column; z-index: 2000; }
         header { background: var(--wa-green); color: white; padding: 15px; display: flex; align-items: center; gap: 10px; font-weight: bold; }
-        #messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-bottom: 120px; }
+        #messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-bottom: 130px; }
         .bubble { max-width: 80%; padding: 10px; border-radius: 12px; font-size: 15px; position: relative; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
         .sent { align-self: flex-end; background: #dcf8c6; border-bottom-right-radius: 2px; }
         .received { align-self: flex-start; background: white; border-bottom-left-radius: 2px; }
 
-        /* Input Area - UI Fixed for Browser Tabs */
+        /* Input Area - Anti ketutup tab browser */
         .input-area { 
-            background: #f0f0f0; padding: 10px 10px 40px 10px; 
-            display: flex; align-items: center; gap: 10px;
-            position: fixed; bottom: 0; width: 100%; border-top: 1px solid #ddd;
+            background: #f0f0f0; 
+            padding: 10px 10px 45px 10px; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px;
+            position: fixed; 
+            bottom: 0; 
+            width: 100%; 
+            border-top: 1px solid #ddd;
+            z-index: 2001;
         }
         #msg-input { flex: 1; padding: 12px 18px; border: none; border-radius: 25px; outline: none; font-size: 16px; background: white; }
         
-        .btn-action { background: none; border: none; font-size: 24px; color: var(--wa-green); padding: 5px; }
+        .btn-action { background: none; border: none; font-size: 24px; color: var(--wa-green); padding: 5px; cursor: pointer; }
         .chat-img { max-width: 100%; border-radius: 8px; margin-bottom: 5px; cursor: pointer; }
         .dl-btn { font-size: 12px; color: #007bff; text-decoration: none; font-weight: bold; display: block; margin-top: 5px; }
     </style>
@@ -91,12 +117,11 @@
     let contacts = JSON.parse(localStorage.getItem('mywa_simple_contacts') || "{}");
     let peer, activeChatId = null;
 
-    // Pakai Prompt Biasa untuk ID awal
     if (!myId) {
         myId = prompt("Selamat Datang! Masukkan ID pilihan kamu sendiri:");
         if (!myId) { 
             myId = "User" + Math.floor(Math.random() * 1000); 
-            alert("ID tidak diisi, ID otomatis kamu: " + myId);
+            alert("ID otomatis kamu: " + myId);
         }
         localStorage.setItem('mywa_simple_id', myId);
         location.reload();
@@ -110,7 +135,6 @@
 
         peer.on('connection', conn => {
             conn.on('data', data => {
-                // Muncul otomatis kalau ada yang chat
                 if (!contacts[conn.peer]) {
                     contacts[conn.peer] = { id: conn.peer, name: "Teman Baru ("+conn.peer+")" };
                     saveContacts();
@@ -123,14 +147,14 @@
         renderContacts();
     }
 
-    // Pakai Prompt Biasa untuk Tambah Kontak
     function manualAddContact() {
         let tid = prompt("Masukkan ID Teman:");
-        if (tid) {
+        if (tid && tid.trim() !== "") {
             let tname = prompt("Beri Nama Khusus (Contoh: Budi):", tid);
             contacts[tid] = { id: tid, name: tname || tid };
             saveContacts();
             renderContacts();
+            alert("Kontak Berhasil Ditambahkan!");
         }
     }
 
