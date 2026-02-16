@@ -3,55 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MyWA Final Pro v12.7</title>
+    <title>MyWA Final Pro v12.8</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js"></script>
     <style>
         :root { --green: #075e54; --light-green: #25d366; --white: #ffffff; --bg: #e5ddd5; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); overflow: hidden; }
         
-        /* Notif Pop Up */
         #notif-pop { position: fixed; top: -100px; left: 5%; width: 90%; background: white; padding: 12px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 1000; transition: 0.5s; display: flex; align-items: center; gap: 10px; border-left: 5px solid var(--light-green); }
         #notif-pop.show { top: 15px; }
 
         header { background: var(--green); color: white; padding: 15px; display: flex; align-items: center; gap: 10px; font-weight: bold; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .contact-item { padding: 15px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 15px; background: white; cursor: pointer; transition: 0.2s; }
-        .contact-item:active { background: #f9f9f9; }
+        .contact-item { padding: 15px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 15px; background: white; cursor: pointer; }
         .avatar { width: 45px; height: 45px; background: #128c7e; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; text-transform: uppercase; }
 
-        /* Layar Chat */
         #chat-screen { position: fixed; inset: 0; background: var(--bg); display: none; flex-direction: column; z-index: 200; }
         #messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
-        .bubble { max-width: 75%; padding: 8px 12px; border-radius: 10px; font-size: 14px; box-shadow: 0 1px 1px rgba(0,0,0,0.1); line-height: 1.4; }
-        .sent { align-self: flex-end; background: #e7ffdb; border-bottom-right-radius: 2px; }
-        .received { align-self: flex-start; background: white; border-bottom-left-radius: 2px; }
-        .media-box img { max-width: 100%; border-radius: 8px; margin-top: 5px; border: 1px solid #ddd; }
+        .bubble { max-width: 75%; padding: 8px 12px; border-radius: 10px; font-size: 14px; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
+        .sent { align-self: flex-end; background: #e7ffdb; }
+        .received { align-self: flex-start; background: white; }
+        .media-box img { max-width: 100%; border-radius: 8px; margin-top: 5px; }
 
         .input-area { background: #f0f0f0; padding: 10px; display: flex; align-items: center; gap: 8px; }
-        input[type="text"] { flex: 1; padding: 12px; border: none; border-radius: 25px; outline: none; font-size: 14px; }
+        input[type="text"] { flex: 1; padding: 12px; border: none; border-radius: 25px; outline: none; }
         
-        /* Layar Telepon */
         #call-screen { position: fixed; inset: 0; background: #075e54; color: white; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 500; }
-        .call-btns { margin-top: 50px; display: flex; gap: 25px; }
-        .btn-call { width: 70px; height: 70px; border-radius: 50%; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 24px; }
-        .accept { background: #25d366; }
+        .btn-call { width: 70px; height: 70px; border-radius: 50%; border: none; color: white; cursor: pointer; font-size: 24px; }
+        .accept { background: #25d366; margin-right: 20px; }
         .reject { background: #ff3b30; }
     </style>
 </head>
 <body>
 
     <div id="notif-pop">
-        <div class="avatar" style="width:35px; height:35px; font-size:14px; background: var(--green);">!</div>
-        <div id="notif-text" style="font-size:14px; color:#333; font-weight: 500;"></div>
+        <div class="avatar" style="width:35px; height:35px; font-size:14px;">!</div>
+        <div id="notif-text" style="font-size:14px; color:#333;"></div>
     </div>
 
     <div id="main-ui">
         <header>
-            <span>MyWA Pro v12.7</span>
-            <span id="my-id-display" style="font-size: 10px; margin-left: auto; background: rgba(0,0,0,0.2); padding: 4px 8px; border-radius: 10px;"></span>
+            <span>MyWA Pro v12.8</span>
+            <span id="my-id-display" style="font-size: 10px; margin-left: auto;"></span>
         </header>
         <div style="padding: 12px; background: white; border-bottom: 1px solid #ddd; display: flex; gap: 8px;">
-            <input type="text" id="target-id" placeholder="Masukkan ID Teman..." style="flex:1; border: 1px solid #ddd; padding: 8px; border-radius: 5px;">
-            <button onclick="addContact()" style="background:var(--light-green); color:white; border:none; padding:8px 15px; border-radius: 5px; font-weight: bold;">Tambah</button>
+            <input type="text" id="target-id" placeholder="Masukkan ID Teman..." style="flex:1; border: 1px solid #ddd; padding: 10px; border-radius: 5px;">
+            <button onclick="addContact()" style="background:var(--light-green); color:white; border:none; padding:10px 15px; border-radius: 5px; font-weight: bold;">Tambah</button>
         </div>
         <div id="contact-list"></div>
     </div>
@@ -59,12 +54,12 @@
     <div id="chat-screen">
         <header>
             <span onclick="closeChat()" style="cursor:pointer; font-size:24px;">←</span>
-            <div class="avatar" id="chat-avatar" style="width:38px; height:38px; font-size: 16px;">?</div>
+            <div class="avatar" id="chat-avatar" style="width:38px; height:38px;">?</div>
             <div style="flex:1">
-                <div id="chat-name" style="font-size:16px">Nama</div>
+                <div id="chat-name">Nama</div>
                 <div id="chat-id-small" style="font-size:10px; opacity:0.8">ID</div>
             </div>
-            <button onclick="saveSpecialName()" style="background:rgba(255,255,255,0.2); color:white; border:none; padding:5px 10px; font-size:11px; border-radius:15px; margin-right: 5px;">Rename</button>
+            <button onclick="saveSpecialName()" style="background:rgba(255,255,255,0.2); color:white; border:none; padding:5px 10px; font-size:11px; border-radius:15px; margin-right: 10px;">Rename</button>
             <button onclick="startCall()" style="background:none; border:none; color:white; font-size:22px">📞</button>
         </header>
         <div id="messages"></div>
@@ -77,10 +72,10 @@
     </div>
 
     <div id="call-screen">
-        <div class="avatar" style="width:130px; height:130px; font-size:60px; background: rgba(255,255,255,0.1); border: 2px solid white;">👤</div>
-        <h2 id="call-status" style="margin-top:20px">Menghubungkan...</h2>
+        <div class="avatar" style="width:120px; height:120px; font-size:50px;">👤</div>
+        <h2 id="call-status">Menghubungkan...</h2>
         <h3 id="call-display-name">Target</h3>
-        <div class="call-btns">
+        <div style="margin-top: 40px;">
             <button id="btn-accept" class="btn-call accept" onclick="answerCall()">📞</button>
             <button class="btn-call reject" onclick="endCall()">❌</button>
         </div>
@@ -88,10 +83,10 @@
     </div>
 
 <script>
-    // --- DATABASE PERMANEN ---
+    // --- STORAGE PERMANEN ---
     let myId = localStorage.getItem('mywa_id') || "WA-" + Math.floor(Math.random()*9999);
     localStorage.setItem('mywa_id', myId);
-    document.getElementById('my-id-display').innerText = myId;
+    document.getElementById('my-id-display').innerText = "ID: " + myId;
 
     const peer = new Peer(myId);
     let activeChatId = null;
@@ -99,27 +94,24 @@
     let currentCall = null;
     let localStream = null;
 
-    // Ambil Nama Khusus (Alias)
     function getAlias(id) {
         const aliases = JSON.parse(localStorage.getItem('mywa_aliases') || "{}");
         return aliases[id] || id;
     }
 
-    // Peer Events
+    // Peer Handling
     peer.on('connection', conn => { setupConn(conn); });
     peer.on('call', call => {
         currentCall = call;
         document.getElementById('call-screen').style.display = 'flex';
-        document.getElementById('btn-accept').style.display = 'flex';
+        document.getElementById('btn-accept').style.display = 'inline-block';
         document.getElementById('call-status').innerText = "Panggilan Masuk...";
         document.getElementById('call-display-name').innerText = getAlias(call.peer);
     });
 
     function setupConn(conn) {
         connMap[conn.peer] = conn;
-        // Simpan ke daftar kontak secara permanen jika belum ada
         saveContactId(conn.peer);
-
         conn.on('data', data => {
             if(data.type === 'chat' || data.type === 'file') {
                 saveMsg(conn.peer, data, 'received');
@@ -131,13 +123,24 @@
         });
     }
 
+    // LOGIKA ADD CONTACT PERBAIKAN
+    function addContact() {
+        let input = document.getElementById('target-id');
+        let id = input.value.trim();
+        if(id && id !== myId) {
+            saveContactId(id);
+            input.value = "";
+            alert("Kontak " + id + " ditambahkan!");
+        }
+    }
+
     function saveContactId(id) {
         let saved = JSON.parse(localStorage.getItem('mywa_contacts') || "[]");
         if(!saved.includes(id)) {
             saved.push(id);
             localStorage.setItem('mywa_contacts', JSON.stringify(saved));
-            updateContactListUI();
         }
+        updateContactListUI();
     }
 
     function updateContactListUI() {
@@ -149,23 +152,10 @@
             item.className = 'contact-item';
             item.onclick = () => openChat(id);
             let name = getAlias(id);
-            item.innerHTML = `
-                <div class="avatar">${name[0]}</div>
-                <div style="flex:1">
-                    <div style="font-weight:bold; color:#333">${name}</div>
-                    <div style="font-size:11px; color:#999">${id}</div>
-                </div>
-            `;
+            item.innerHTML = `<div class="avatar">${name[0]}</div>
+                              <div style="flex:1"><b>${name}</b><br><small style="color:gray">${id}</small></div>`;
             list.appendChild(item);
         });
-    }
-
-    function addContact() {
-        let id = document.getElementById('target-id').value.trim();
-        if(id && id !== myId) {
-            saveContactId(id);
-            document.getElementById('target-id').value = "";
-        }
     }
 
     function openChat(id) {
@@ -179,13 +169,12 @@
     }
 
     function saveSpecialName() {
-        let current = getAlias(activeChatId);
-        let newName = prompt("Beri nama khusus untuk kontak ini:", current);
+        let newName = prompt("Beri nama khusus:", getAlias(activeChatId));
         if(newName) {
             let aliases = JSON.parse(localStorage.getItem('mywa_aliases') || "{}");
             aliases[activeChatId] = newName;
             localStorage.setItem('mywa_aliases', JSON.stringify(aliases));
-            document.getElementById('chat-name').innerText = newName;
+            openChat(activeChatId);
             updateContactListUI();
         }
     }
@@ -193,8 +182,8 @@
     function sendMsg() {
         let input = document.getElementById('msg-input');
         if(input.value && activeChatId) {
-            let data = { type: 'chat', msg: input.value, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) };
-            connMap[activeChatId].send(data);
+            let data = { type: 'chat', msg: input.value, time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) };
+            if(connMap[activeChatId]) connMap[activeChatId].send(data);
             saveMsg(activeChatId, data, 'sent');
             renderMessages();
             input.value = "";
@@ -207,14 +196,14 @@
         const reader = new FileReader();
         reader.onload = () => {
             let data = { type: 'file', file: reader.result, fileName: file.name, fileType: file.type };
-            connMap[activeChatId].send(data);
+            if(connMap[activeChatId]) connMap[activeChatId].send(data);
             saveMsg(activeChatId, data, 'sent');
             renderMessages();
         };
         reader.readAsDataURL(file);
     }
 
-    // --- LOGIKA SUARA ---
+    // TELEPON
     async function startCall() {
         try {
             localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -222,13 +211,8 @@
             document.getElementById('call-screen').style.display = 'flex';
             document.getElementById('btn-accept').style.display = 'none';
             document.getElementById('call-status').innerText = "Memanggil...";
-            document.getElementById('call-display-name').innerText = getAlias(activeChatId);
-            
-            currentCall.on('stream', remoteStream => {
-                document.getElementById('remote-audio').srcObject = remoteStream;
-                document.getElementById('call-status').innerText = "Suara Terhubung";
-            });
-        } catch(e) { alert("Mikrofon tidak aktif!"); }
+            currentCall.on('stream', st => { document.getElementById('remote-audio').srcObject = st; });
+        } catch(e) { alert("Akses mic ditolak!"); }
     }
 
     async function answerCall() {
@@ -237,14 +221,12 @@
             currentCall.answer(localStream);
             document.getElementById('btn-accept').style.display = 'none';
             document.getElementById('call-status').innerText = "Berbicara...";
-            currentCall.on('stream', remoteStream => {
-                document.getElementById('remote-audio').srcObject = remoteStream;
-            });
-        } catch(e) { alert("Mikrofon tidak aktif!"); }
+            currentCall.on('stream', st => { document.getElementById('remote-audio').srcObject = st; });
+        } catch(e) { alert("Akses mic ditolak!"); }
     }
 
     function endCall() {
-        if(activeChatId && connMap[activeChatId]) connMap[activeChatId].send({ type: 'call_end' });
+        if(activeChatId && connMap[activeChatId]) connMap[activeChatId].send({type:'call_end'});
         stopCall();
     }
 
@@ -254,7 +236,6 @@
         document.getElementById('call-screen').style.display = 'none';
     }
 
-    // --- SIMPAN CHAT PERMANEN ---
     function saveMsg(id, data, type) {
         let history = JSON.parse(localStorage.getItem('chat_' + id) || "[]");
         history.push({ ...data, type });
@@ -268,10 +249,10 @@
         history.forEach(d => {
             let b = document.createElement('div');
             b.className = 'bubble ' + d.type;
-            if(d.type === 'chat') b.innerHTML = `${d.msg} <br><small style="font-size:9px; opacity:0.5; float:right">${d.time || ''}</small>`;
+            if(d.type === 'chat') b.innerHTML = d.msg + `<br><small style="font-size:9px;opacity:0.5">${d.time || ''}</small>`;
             if(d.type === 'file') {
-                if(d.fileType.includes('image')) b.innerHTML = `<div class="media-box"><img src="${d.file}"></div>`;
-                else b.innerHTML = `<div class="media-box" style="padding:10px">📄 ${d.fileName}</div>`;
+                if(d.fileType.includes('image')) b.innerHTML = `<img src="${d.file}" style="max-width:100%; border-radius:5px">`;
+                else b.innerHTML = `📄 ${d.fileName}`;
             }
             container.appendChild(b);
         });
@@ -283,12 +264,12 @@
         let pop = document.getElementById('notif-pop');
         document.getElementById('notif-text').innerText = getAlias(sender) + ": " + msg;
         pop.classList.add('show');
-        setTimeout(() => pop.classList.remove('show'), 3500);
+        setTimeout(() => pop.classList.remove('show'), 3000);
     }
 
     function closeChat() { document.getElementById('chat-screen').style.display = 'none'; activeChatId = null; }
-    
-    // Jalankan Daftar Kontak saat Start
+
+    // Start UI
     updateContactListUI();
 </script>
 </body>
