@@ -2,192 +2,214 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MyWA Final Pro v12.8</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>MyWA Pro v13.0</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js"></script>
     <style>
-        :root { --green: #075e54; --light-green: #25d366; --white: #ffffff; --bg: #e5ddd5; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); overflow: hidden; }
+        :root { --green: #075e54; --light-green: #25d366; --teal: #128c7e; --white: #ffffff; --bg: #e5ddd5; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; background: var(--bg); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* Splash Screen */
+        #splash { position: fixed; inset: 0; background: var(--green); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
         
-        #notif-pop { position: fixed; top: -100px; left: 5%; width: 90%; background: white; padding: 12px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 1000; transition: 0.5s; display: flex; align-items: center; gap: 10px; border-left: 5px solid var(--light-green); }
+        /* Notif Pop */
+        #notif-pop { position: fixed; top: -100px; left: 5%; width: 90%; background: white; padding: 12px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 1500; transition: 0.5s; display: flex; align-items: center; gap: 10px; border-left: 5px solid var(--light-green); }
         #notif-pop.show { top: 15px; }
 
-        header { background: var(--green); color: white; padding: 15px; display: flex; align-items: center; gap: 10px; font-weight: bold; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .contact-item { padding: 15px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 15px; background: white; cursor: pointer; }
-        .avatar { width: 45px; height: 45px; background: #128c7e; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; text-transform: uppercase; }
-
-        #chat-screen { position: fixed; inset: 0; background: var(--bg); display: none; flex-direction: column; z-index: 200; }
-        #messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
-        .bubble { max-width: 75%; padding: 8px 12px; border-radius: 10px; font-size: 14px; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
-        .sent { align-self: flex-end; background: #e7ffdb; }
-        .received { align-self: flex-start; background: white; }
-        .media-box img { max-width: 100%; border-radius: 8px; margin-top: 5px; }
-
-        .input-area { background: #f0f0f0; padding: 10px; display: flex; align-items: center; gap: 8px; }
-        input[type="text"] { flex: 1; padding: 12px; border: none; border-radius: 25px; outline: none; }
+        header { background: var(--green); color: white; padding: 15px; font-weight: bold; font-size: 18px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
         
-        #call-screen { position: fixed; inset: 0; background: #075e54; color: white; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 500; }
-        .btn-call { width: 70px; height: 70px; border-radius: 50%; border: none; color: white; cursor: pointer; font-size: 24px; }
-        .accept { background: #25d366; margin-right: 20px; }
-        .reject { background: #ff3b30; }
+        /* Contact List Scrollable */
+        #main-ui { display: flex; flex-direction: column; height: 100%; }
+        #contact-list { flex: 1; overflow-y: auto; background: white; }
+        .contact-item { padding: 12px 15px; border-bottom: 1px solid #f2f2f2; display: flex; align-items: center; gap: 12px; position: relative; }
+        .avatar { width: 50px; height: 50px; background: #ccc; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; flex-shrink: 0; }
+        .badge { position: absolute; right: 20px; background: var(--light-green); color: white; font-size: 10px; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid white; position: absolute; bottom: 0; right: 0; }
+        .online { background: var(--light-green); }
+        .offline { background: #bbb; }
+
+        /* Chat Screen */
+        #chat-screen { position: fixed; inset: 0; background: var(--bg); display: none; flex-direction: column; z-index: 1000; }
+        #messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; padding-bottom: 80px; }
+        .bubble { max-width: 80%; padding: 8px 12px; border-radius: 8px; font-size: 14px; position: relative; }
+        .sent { align-self: flex-end; background: #dcf8c6; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
+        .received { align-self: flex-start; background: white; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
+        
+        /* Tick System */
+        .tick { font-size: 10px; margin-left: 5px; color: #999; }
+        .read { color: #34b7f1 !important; }
+
+        /* Input Area - Anti Tab Browser */
+        .input-area { background: #f0f0f0; padding: 10px 15px; display: flex; align-items: center; gap: 10px; position: absolute; bottom: 0; width: 100%; padding-bottom: 25px; }
+        input[type="text"] { flex: 1; padding: 10px 15px; border: none; border-radius: 20px; outline: none; font-size: 15px; }
+
+        .btn-add { background: var(--light-green); color: white; border: none; padding: 12px; width: 100%; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
+    <div id="splash">
+        <h2>MyWA Pro</h2>
+        <p>Selamat Datang</p>
+        <div id="id-setup" style="display:none; text-align:center; margin-top:20px;">
+            <input type="text" id="custom-id" placeholder="Buat ID kamu..." style="padding:10px; border-radius:5px; border:none;"><br><br>
+            <button onclick="saveMyID()" style="padding:10px 20px; border-radius:5px; border:none; background:var(--light-green); color:white;">Mulai</button>
+        </div>
+    </div>
+
     <div id="notif-pop">
-        <div class="avatar" style="width:35px; height:35px; font-size:14px;">!</div>
-        <div id="notif-text" style="font-size:14px; color:#333;"></div>
+        <div class="avatar" style="width:35px; height:35px; font-size:14px; background:var(--green)">!</div>
+        <div id="notif-text"></div>
     </div>
 
     <div id="main-ui">
         <header>
-            <span>MyWA Pro v12.8</span>
-            <span id="my-id-display" style="font-size: 10px; margin-left: auto;"></span>
+            <span>MyWA Pro</span>
+            <span id="my-id-display" style="font-size:12px; opacity:0.8"></span>
         </header>
-        <div style="padding: 12px; background: white; border-bottom: 1px solid #ddd; display: flex; gap: 8px;">
-            <input type="text" id="target-id" placeholder="Masukkan ID Teman..." style="flex:1; border: 1px solid #ddd; padding: 10px; border-radius: 5px;">
-            <button onclick="addContact()" style="background:var(--light-green); color:white; border:none; padding:10px 15px; border-radius: 5px; font-weight: bold;">Tambah</button>
+        
+        <div style="background:white; padding:10px; border-bottom:1px solid #ddd;">
+            <input type="text" id="target-id" placeholder="ID Teman..." style="width:45%; padding:8px; border:1px solid #ddd; border-radius:4px;">
+            <input type="text" id="target-alias" placeholder="Nama..." style="width:30%; padding:8px; border:1px solid #ddd; border-radius:4px;">
+            <button onclick="addContact()" style="padding:8px; background:var(--green); color:white; border:none; border-radius:4px;">Add</button>
         </div>
+
         <div id="contact-list"></div>
     </div>
 
     <div id="chat-screen">
         <header>
-            <span onclick="closeChat()" style="cursor:pointer; font-size:24px;">←</span>
-            <div class="avatar" id="chat-avatar" style="width:38px; height:38px;">?</div>
-            <div style="flex:1">
+            <span onclick="closeChat()" style="cursor:pointer">←</span>
+            <div class="avatar" id="chat-avatar" style="width:35px; height:35px; font-size:14px">?</div>
+            <div style="flex:1; margin-left:10px">
                 <div id="chat-name">Nama</div>
-                <div id="chat-id-small" style="font-size:10px; opacity:0.8">ID</div>
+                <div id="chat-status" style="font-size:10px; font-weight:normal; opacity:0.8">Offline</div>
             </div>
-            <button onclick="saveSpecialName()" style="background:rgba(255,255,255,0.2); color:white; border:none; padding:5px 10px; font-size:11px; border-radius:15px; margin-right: 10px;">Rename</button>
-            <button onclick="startCall()" style="background:none; border:none; color:white; font-size:22px">📞</button>
         </header>
         <div id="messages"></div>
         <div class="input-area">
             <input type="file" id="file-input" style="display:none" onchange="sendFile()">
-            <button onclick="document.getElementById('file-input').click()" style="background:none; border:none; font-size:24px">📎</button>
-            <input type="text" id="msg-input" placeholder="Ketik pesan...">
-            <button onclick="sendMsg()" style="background:none; border:none; font-size:28px; color: var(--green);">➤</button>
+            <button onclick="document.getElementById('file-input').click()" style="background:none; border:none; font-size:20px">📎</button>
+            <input type="text" id="msg-input" placeholder="Ketik pesan..." oninput="sendTyping()">
+            <button onclick="sendMsg()" style="background:none; border:none; font-size:24px; color:var(--green)">➤</button>
         </div>
-    </div>
-
-    <div id="call-screen">
-        <div class="avatar" style="width:120px; height:120px; font-size:50px;">👤</div>
-        <h2 id="call-status">Menghubungkan...</h2>
-        <h3 id="call-display-name">Target</h3>
-        <div style="margin-top: 40px;">
-            <button id="btn-accept" class="btn-call accept" onclick="answerCall()">📞</button>
-            <button class="btn-call reject" onclick="endCall()">❌</button>
-        </div>
-        <audio id="remote-audio" autoplay></audio>
     </div>
 
 <script>
-    // --- STORAGE PERMANEN ---
-    let myId = localStorage.getItem('mywa_id') || "WA-" + Math.floor(Math.random()*9999);
-    localStorage.setItem('mywa_id', myId);
-    document.getElementById('my-id-display').innerText = "ID: " + myId;
+    let myId = localStorage.getItem('mywa_id');
+    let contacts = JSON.parse(localStorage.getItem('mywa_contacts') || "{}");
+    let peer, activeChatId = null;
 
-    const peer = new Peer(myId);
-    let activeChatId = null;
-    let connMap = {};
-    let currentCall = null;
-    let localStream = null;
-
-    function getAlias(id) {
-        const aliases = JSON.parse(localStorage.getItem('mywa_aliases') || "{}");
-        return aliases[id] || id;
+    if (!myId) {
+        document.getElementById('id-setup').style.display = 'block';
+    } else {
+        startApp();
     }
 
-    // Peer Handling
-    peer.on('connection', conn => { setupConn(conn); });
-    peer.on('call', call => {
-        currentCall = call;
-        document.getElementById('call-screen').style.display = 'flex';
-        document.getElementById('btn-accept').style.display = 'inline-block';
-        document.getElementById('call-status').innerText = "Panggilan Masuk...";
-        document.getElementById('call-display-name').innerText = getAlias(call.peer);
-    });
+    function saveMyID() {
+        let val = document.getElementById('custom-id').value.trim();
+        if(val) {
+            localStorage.setItem('mywa_id', val);
+            myId = val;
+            startApp();
+        }
+    }
 
-    function setupConn(conn) {
-        connMap[conn.peer] = conn;
-        saveContactId(conn.peer);
-        conn.on('data', data => {
-            if(data.type === 'chat' || data.type === 'file') {
-                saveMsg(conn.peer, data, 'received');
-                showNotification(conn.peer, data.msg || "Mengirim file 📎");
-                if(activeChatId === conn.peer) renderMessages();
-                updateContactListUI();
-            }
-            if(data.type === 'call_end') stopCall();
+    function startApp() {
+        document.getElementById('splash').style.fadeOut = "slow";
+        setTimeout(() => document.getElementById('splash').style.display = 'none', 1000);
+        document.getElementById('my-id-display').innerText = "ID: " + myId;
+        
+        peer = new Peer(myId);
+        
+        peer.on('open', () => {
+            setInterval(broadcastOnline, 3000);
         });
-    }
 
-    // LOGIKA ADD CONTACT PERBAIKAN
-    function addContact() {
-        let input = document.getElementById('target-id');
-        let id = input.value.trim();
-        if(id && id !== myId) {
-            saveContactId(id);
-            input.value = "";
-            alert("Kontak " + id + " ditambahkan!");
-        }
-    }
+        peer.on('connection', conn => {
+            setupConn(conn);
+        });
 
-    function saveContactId(id) {
-        let saved = JSON.parse(localStorage.getItem('mywa_contacts') || "[]");
-        if(!saved.includes(id)) {
-            saved.push(id);
-            localStorage.setItem('mywa_contacts', JSON.stringify(saved));
-        }
         updateContactListUI();
     }
 
-    function updateContactListUI() {
-        let list = document.getElementById('contact-list');
-        list.innerHTML = "";
-        let saved = JSON.parse(localStorage.getItem('mywa_contacts') || "[]");
-        saved.forEach(id => {
-            let item = document.createElement('div');
-            item.className = 'contact-item';
-            item.onclick = () => openChat(id);
-            let name = getAlias(id);
-            item.innerHTML = `<div class="avatar">${name[0]}</div>
-                              <div style="flex:1"><b>${name}</b><br><small style="color:gray">${id}</small></div>`;
-            list.appendChild(item);
+    function setupConn(conn) {
+        conn.on('data', data => {
+            if(data.type === 'chat' || data.type === 'file') {
+                handleIncomingMsg(conn.peer, data);
+                // Kirim balik centang 2 (Diterima)
+                conn.send({ type: 'tick', status: 2, msgId: data.msgId });
+            }
+            if(data.type === 'tick' && data.status === 2) updateTickUI(conn.peer, data.msgId, '✓✓');
+            if(data.type === 'tick' && data.status === 3) updateTickUI(conn.peer, data.msgId, '✓✓', true);
+            if(data.type === 'online') updateStatusUI(conn.peer, true);
         });
+    }
+
+    function handleIncomingMsg(senderId, data) {
+        if(!contacts[senderId]) {
+            contacts[senderId] = { id: senderId, alias: senderId, unread: 0 };
+            saveContacts();
+        }
+        
+        if(activeChatId !== senderId) {
+            contacts[senderId].unread = (contacts[senderId].unread || 0) + 1;
+            saveContacts();
+            showNotif(senderId, data.msg || "📎 File");
+        } else {
+            // Jika sedang buka chat, kirim centang biru
+            let conn = peer.connect(senderId);
+            conn.on('open', () => conn.send({ type: 'tick', status: 3, msgId: data.msgId }));
+        }
+
+        saveChat(senderId, { ...data, side: 'received' });
+        updateContactListUI();
+        if(activeChatId === senderId) renderMessages();
+    }
+
+    function addContact() {
+        let id = document.getElementById('target-id').value.trim();
+        let alias = document.getElementById('target-alias').value.trim() || id;
+        if(id && id !== myId) {
+            contacts[id] = { id, alias, unread: 0 };
+            saveContacts();
+            updateContactListUI();
+            document.getElementById('target-id').value = "";
+            document.getElementById('target-alias').value = "";
+        }
     }
 
     function openChat(id) {
         activeChatId = id;
+        contacts[id].unread = 0;
+        saveContacts();
         document.getElementById('chat-screen').style.display = 'flex';
-        document.getElementById('chat-name').innerText = getAlias(id);
-        document.getElementById('chat-id-small').innerText = id;
-        document.getElementById('chat-avatar').innerText = getAlias(id)[0];
-        if(!connMap[id]) setupConn(peer.connect(id));
-        renderMessages();
-    }
+        document.getElementById('chat-name').innerText = contacts[id].alias;
+        document.getElementById('chat-avatar').innerText = contacts[id].alias[0].toUpperCase();
+        
+        // Kirim sinyal centang biru untuk pesan-pesan terakhir
+        let conn = peer.connect(id);
+        conn.on('open', () => conn.send({ type: 'tick', status: 3 }));
 
-    function saveSpecialName() {
-        let newName = prompt("Beri nama khusus:", getAlias(activeChatId));
-        if(newName) {
-            let aliases = JSON.parse(localStorage.getItem('mywa_aliases') || "{}");
-            aliases[activeChatId] = newName;
-            localStorage.setItem('mywa_aliases', JSON.stringify(aliases));
-            openChat(activeChatId);
-            updateContactListUI();
-        }
+        updateContactListUI();
+        renderMessages();
     }
 
     function sendMsg() {
         let input = document.getElementById('msg-input');
-        if(input.value && activeChatId) {
-            let data = { type: 'chat', msg: input.value, time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) };
-            if(connMap[activeChatId]) connMap[activeChatId].send(data);
-            saveMsg(activeChatId, data, 'sent');
+        if(!input.value || !activeChatId) return;
+
+        let msgId = Date.now();
+        let data = { type: 'chat', msg: input.value, msgId: msgId, time: getTime() };
+        
+        let conn = peer.connect(activeChatId);
+        conn.on('open', () => {
+            conn.send(data);
+            saveChat(activeChatId, { ...data, side: 'sent', tick: '✓' });
             renderMessages();
-            input.value = "";
-        }
+        });
+        input.value = "";
     }
 
     function sendFile() {
@@ -195,50 +217,20 @@
         if(!file || !activeChatId) return;
         const reader = new FileReader();
         reader.onload = () => {
-            let data = { type: 'file', file: reader.result, fileName: file.name, fileType: file.type };
-            if(connMap[activeChatId]) connMap[activeChatId].send(data);
-            saveMsg(activeChatId, data, 'sent');
-            renderMessages();
+            let data = { type: 'file', file: reader.result, fileName: file.name, fileType: file.type, msgId: Date.now(), time: getTime() };
+            let conn = peer.connect(activeChatId);
+            conn.on('open', () => {
+                conn.send(data);
+                saveChat(activeChatId, { ...data, side: 'sent', tick: '✓' });
+                renderMessages();
+            });
         };
         reader.readAsDataURL(file);
     }
 
-    // TELEPON
-    async function startCall() {
-        try {
-            localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            currentCall = peer.call(activeChatId, localStream);
-            document.getElementById('call-screen').style.display = 'flex';
-            document.getElementById('btn-accept').style.display = 'none';
-            document.getElementById('call-status').innerText = "Memanggil...";
-            currentCall.on('stream', st => { document.getElementById('remote-audio').srcObject = st; });
-        } catch(e) { alert("Akses mic ditolak!"); }
-    }
-
-    async function answerCall() {
-        try {
-            localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            currentCall.answer(localStream);
-            document.getElementById('btn-accept').style.display = 'none';
-            document.getElementById('call-status').innerText = "Berbicara...";
-            currentCall.on('stream', st => { document.getElementById('remote-audio').srcObject = st; });
-        } catch(e) { alert("Akses mic ditolak!"); }
-    }
-
-    function endCall() {
-        if(activeChatId && connMap[activeChatId]) connMap[activeChatId].send({type:'call_end'});
-        stopCall();
-    }
-
-    function stopCall() {
-        if(currentCall) currentCall.close();
-        if(localStream) localStream.getTracks().forEach(t => t.stop());
-        document.getElementById('call-screen').style.display = 'none';
-    }
-
-    function saveMsg(id, data, type) {
+    function saveChat(id, obj) {
         let history = JSON.parse(localStorage.getItem('chat_' + id) || "[]");
-        history.push({ ...data, type });
+        history.push(obj);
         localStorage.setItem('chat_' + id, JSON.stringify(history));
     }
 
@@ -248,29 +240,65 @@
         let history = JSON.parse(localStorage.getItem('chat_' + activeChatId) || "[]");
         history.forEach(d => {
             let b = document.createElement('div');
-            b.className = 'bubble ' + d.type;
-            if(d.type === 'chat') b.innerHTML = d.msg + `<br><small style="font-size:9px;opacity:0.5">${d.time || ''}</small>`;
-            if(d.type === 'file') {
-                if(d.fileType.includes('image')) b.innerHTML = `<img src="${d.file}" style="max-width:100%; border-radius:5px">`;
-                else b.innerHTML = `📄 ${d.fileName}`;
-            }
+            b.className = 'bubble ' + d.side;
+            if(d.type === 'chat') b.innerHTML = d.msg;
+            if(d.type === 'file') b.innerHTML = d.fileType.includes('image') ? `<img src="${d.file}" width="100%">` : `📄 ${d.fileName}`;
+            
+            let info = document.createElement('div');
+            info.style.fontSize = "9px"; info.style.textAlign = "right"; info.style.opacity = "0.6";
+            info.innerHTML = d.time + (d.side === 'sent' ? ` <span class="tick" id="tick-${d.msgId}">${d.tick || '✓'}</span>` : '');
+            b.appendChild(info);
             container.appendChild(b);
         });
         container.scrollTop = container.scrollHeight;
     }
 
-    function showNotification(sender, msg) {
-        if(activeChatId === sender && document.getElementById('chat-screen').style.display === 'flex') return;
+    function updateTickUI(peerId, msgId, symbol, isBlue = false) {
+        let history = JSON.parse(localStorage.getItem('chat_' + peerId) || "[]");
+        history.forEach(m => { if(m.msgId == msgId || !msgId) { m.tick = symbol; if(isBlue) m.isRead = true; } });
+        localStorage.setItem('chat_' + peerId, JSON.stringify(history));
+        if(activeChatId === peerId) renderMessages();
+    }
+
+    function updateContactListUI() {
+        let list = document.getElementById('contact-list');
+        list.innerHTML = "";
+        Object.values(contacts).forEach(c => {
+            let item = document.createElement('div');
+            item.className = 'contact-item';
+            item.onclick = () => openChat(c.id);
+            item.innerHTML = `
+                <div class="avatar">${c.alias[0].toUpperCase()}<div id="dot-${c.id}" class="status-dot offline"></div></div>
+                <div style="flex:1"><b>${c.alias}</b><br><small style="color:gray">${c.id}</small></div>
+                ${c.unread > 0 ? `<div class="badge">${c.unread}</div>` : ''}
+            `;
+            list.appendChild(item);
+        });
+    }
+
+    function broadcastOnline() {
+        Object.keys(contacts).forEach(id => {
+            let conn = peer.connect(id);
+            conn.on('open', () => conn.send({ type: 'online' }));
+        });
+    }
+
+    function updateStatusUI(id, isOnline) {
+        let dot = document.getElementById('dot-' + id);
+        if(dot) dot.className = "status-dot " + (isOnline ? "online" : "offline");
+        if(activeChatId === id) document.getElementById('chat-status').innerText = isOnline ? "Online" : "Offline";
+    }
+
+    function showNotif(sender, msg) {
         let pop = document.getElementById('notif-pop');
-        document.getElementById('notif-text').innerText = getAlias(sender) + ": " + msg;
+        document.getElementById('notif-text').innerHTML = `<b>${contacts[sender].alias}</b><br>${msg}`;
         pop.classList.add('show');
         setTimeout(() => pop.classList.remove('show'), 3000);
     }
 
+    function getTime() { return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
+    function saveContacts() { localStorage.setItem('mywa_contacts', JSON.stringify(contacts)); }
     function closeChat() { document.getElementById('chat-screen').style.display = 'none'; activeChatId = null; }
-
-    // Start UI
-    updateContactListUI();
 </script>
 </body>
 </html>
