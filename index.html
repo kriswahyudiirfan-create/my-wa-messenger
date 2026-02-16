@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>MyWA Simple v15.4</title>
+    <title>MyWA Simple v15.5</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js"></script>
     <style>
         :root { --wa-green: #075e54; --wa-light: #25d366; --bg: #e5ddd5; }
@@ -22,30 +22,42 @@
         .sub-text { font-size: 13px; color: #444; margin-top: 5px; font-weight: bold; letter-spacing: 1px; }
 
         /* Contact List */
-        #main-ui { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        #main-ui { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; height: 100%; }
         #contact-list { flex: 1; overflow-y: auto; background: white; }
         .contact-item { padding: 15px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px; cursor: pointer; }
         .avatar { width: 45px; height: 45px; background: var(--wa-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; text-transform: uppercase; }
 
-        /* Tombol Add Tetap Ada */
+        /* TOMBOL PLUS (+) DIPERBAIKI */
         .fab-add { 
-            position: absolute; bottom: 30px; right: 25px; 
-            width: 65px; height: 65px; background: var(--wa-light); 
-            color: white; border-radius: 50%; display: flex; 
-            align-items: center; justify-content: center; font-size: 35px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4); z-index: 999; border: none;
+            position: fixed; 
+            bottom: 30px; 
+            right: 25px; 
+            width: 65px; 
+            height: 65px; 
+            background: var(--wa-light); 
+            color: white; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 40px; 
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3); 
+            z-index: 3000 !important; /* Pastikan paling depan */
+            border: none;
             cursor: pointer;
+            line-height: 0;
         }
+        .fab-add:active { transform: scale(0.9); }
 
         /* Chat Screen */
-        #chat-screen { position: fixed; inset: 0; background: var(--bg); display: none; flex-direction: column; z-index: 2000; }
+        #chat-screen { position: fixed; inset: 0; background: var(--bg); display: none; flex-direction: column; z-index: 4000; }
         header { background: var(--wa-green); color: white; padding: 15px; display: flex; align-items: center; gap: 10px; font-weight: bold; }
         #messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-bottom: 140px; }
         .bubble { max-width: 80%; padding: 10px; border-radius: 12px; font-size: 15px; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
         .sent { align-self: flex-end; background: #dcf8c6; border-bottom-right-radius: 2px; }
         .received { align-self: flex-start; background: white; border-bottom-left-radius: 2px; }
 
-        /* Input Area Anti-Ketutup Tab Browser */
+        /* Input Area */
         .input-area { 
             background: #f0f0f0; padding: 10px 10px 45px 10px; 
             display: flex; align-items: center; gap: 10px;
@@ -54,7 +66,6 @@
         #msg-input { flex: 1; padding: 12px 18px; border: none; border-radius: 25px; outline: none; font-size: 16px; background: white; }
         .btn-action { background: none; border: none; font-size: 24px; color: var(--wa-green); cursor: pointer; }
         .chat-img { max-width: 100%; border-radius: 8px; margin-bottom: 5px; }
-        .dl-btn { font-size: 12px; color: #007bff; text-decoration: none; font-weight: bold; display: block; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -66,10 +77,9 @@
             <div id="display-my-id" style="margin-top:10px; font-size:12px; color:var(--wa-green); font-weight:bold;"></div>
         </div>
 
-        <div id="contact-list">
-            </div>
+        <div id="contact-list"></div>
         
-        <button class="fab-add" onclick="manualAddContact()">+</button>
+        <button class="fab-add" onclick="manualAddContact()" title="Tambah Kontak">+</button>
     </div>
 
     <div id="chat-screen">
@@ -93,7 +103,7 @@
     let peer, activeChatId = null;
 
     if (!myId) {
-        myId = prompt("Selamat Datang! Masukkan ID pilihan kamu:");
+        myId = prompt("Masukan ID pilihan kamu:");
         if (!myId) myId = "User" + Math.floor(Math.random() * 1000);
         localStorage.setItem('mywa_simple_id', myId);
         location.reload();
@@ -122,7 +132,7 @@
     function manualAddContact() {
         let tid = prompt("Masukkan ID Teman:");
         if (tid && tid.trim() !== "") {
-            let tname = prompt("Beri Nama Khusus (Teman Saya):", tid);
+            let tname = prompt("Beri Nama Khusus:", tid);
             contacts[tid] = { id: tid, name: tname || tid };
             saveContacts();
             renderContacts();
@@ -133,7 +143,7 @@
     function renderContacts() {
         let list = document.getElementById('contact-list');
         list.innerHTML = `<div class="contact-item" onclick="openChat('BOT-CATATAN', 'Bot Simpan Pesan')">
-            <div class="avatar">🤖</div><div><b>Bot Simpan Pesan</b><br><small>Simpan catatan sendiri</small></div>
+            <div class="avatar">🤖</div><div><b>Bot Simpan Pesan</b><br><small>Catatan pribadi</small></div>
         </div>`;
         Object.values(contacts).forEach(c => {
             let item = document.createElement('div');
@@ -155,23 +165,14 @@
 
     function sendMsg() {
         let input = document.getElementById('msg-input');
-        let text = input.value;
-        if(!text || !activeChatId) return;
-
-        let data = { type: 'text', content: text, time: getTime() };
-        
-        // LANGSUNG MUNCUL DI LAYAR
+        if(!input.value || !activeChatId) return;
+        let data = { type: 'text', content: input.value, time: getTime() };
         saveHistory(activeChatId, { ...data, side: 'sent' });
         renderMessages();
-        
-        // KIRIM KE PEER (TEMAN)
         if (activeChatId !== 'BOT-CATATAN') {
             let conn = peer.connect(activeChatId);
-            conn.on('open', () => {
-                conn.send(data);
-            });
+            conn.on('open', () => conn.send(data));
         }
-        
         input.value = "";
     }
 
@@ -180,14 +181,9 @@
         if(!file) return;
         let reader = new FileReader();
         reader.onload = () => {
-            let data = { 
-                type: 'file', content: reader.result, fileName: file.name, 
-                isImage: file.type.startsWith('image/'), time: getTime() 
-            };
-            
+            let data = { type: 'file', content: reader.result, fileName: file.name, isImage: file.type.startsWith('image/'), time: getTime() };
             saveHistory(activeChatId, { ...data, side: 'sent' });
             renderMessages();
-
             if(activeChatId !== 'BOT-CATATAN') {
                 let conn = peer.connect(activeChatId);
                 conn.on('open', () => conn.send(data));
@@ -213,10 +209,10 @@
             if(m.type === 'file') {
                 if(m.isImage) b.innerHTML = `<img src="${m.content}" class="chat-img" onclick="window.open('${m.content}')">`;
                 else b.innerHTML = `📄 ${m.fileName}`;
-                b.innerHTML += `<a href="${m.content}" download="${m.fileName}" class="dl-btn">Simpan ke HP</a>`;
+                b.innerHTML += `<br><a href="${m.content}" download="${m.fileName}" style="font-size:11px; color:#007bff">Download</a>`;
             }
             let t = document.createElement('div');
-            t.style.fontSize = "9px"; t.style.textAlign = "right"; t.style.opacity = "0.5"; t.style.marginTop = "5px";
+            t.style.fontSize = "9px"; t.style.textAlign = "right"; t.style.opacity = "0.5";
             t.innerText = m.time;
             b.appendChild(t);
             container.appendChild(b);
