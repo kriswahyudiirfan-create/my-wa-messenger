@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>MyWA Simple v15.3</title>
+    <title>MyWA Simple v15.4</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js"></script>
     <style>
         :root { --wa-green: #075e54; --wa-light: #25d366; --bg: #e5ddd5; }
@@ -25,26 +25,27 @@
         #main-ui { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
         #contact-list { flex: 1; overflow-y: auto; background: white; }
         .contact-item { padding: 15px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px; cursor: pointer; }
-        .avatar { width: 45px; height: 45px; background: var(--wa-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
+        .avatar { width: 45px; height: 45px; background: var(--wa-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; text-transform: uppercase; }
 
-        /* Tombol Add */
+        /* Tombol Add Tetap Ada */
         .fab-add { 
             position: absolute; bottom: 30px; right: 25px; 
             width: 65px; height: 65px; background: var(--wa-light); 
             color: white; border-radius: 50%; display: flex; 
             align-items: center; justify-content: center; font-size: 35px; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.4); z-index: 999; border: none;
+            cursor: pointer;
         }
 
         /* Chat Screen */
         #chat-screen { position: fixed; inset: 0; background: var(--bg); display: none; flex-direction: column; z-index: 2000; }
         header { background: var(--wa-green); color: white; padding: 15px; display: flex; align-items: center; gap: 10px; font-weight: bold; }
-        #messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-bottom: 130px; }
-        .bubble { max-width: 80%; padding: 10px; border-radius: 12px; font-size: 15px; position: relative; word-wrap: break-word; }
-        .sent { align-self: flex-end; background: #dcf8c6; }
-        .received { align-self: flex-start; background: white; }
+        #messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-bottom: 140px; }
+        .bubble { max-width: 80%; padding: 10px; border-radius: 12px; font-size: 15px; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .sent { align-self: flex-end; background: #dcf8c6; border-bottom-right-radius: 2px; }
+        .received { align-self: flex-start; background: white; border-bottom-left-radius: 2px; }
 
-        /* Input Area */
+        /* Input Area Anti-Ketutup Tab Browser */
         .input-area { 
             background: #f0f0f0; padding: 10px 10px 45px 10px; 
             display: flex; align-items: center; gap: 10px;
@@ -66,11 +67,7 @@
         </div>
 
         <div id="contact-list">
-            <div class="contact-item" onclick="openChat('BOT-CATATAN', 'Bot Simpan Pesan')">
-                <div class="avatar">🤖</div>
-                <div><b>Bot Simpan Pesan</b><br><small>Kirim pesan ke diri sendiri</small></div>
             </div>
-        </div>
         
         <button class="fab-add" onclick="manualAddContact()">+</button>
     </div>
@@ -96,7 +93,7 @@
     let peer, activeChatId = null;
 
     if (!myId) {
-        myId = prompt("Selamat Datang! Masukkan ID pilihan kamu sendiri:");
+        myId = prompt("Selamat Datang! Masukkan ID pilihan kamu:");
         if (!myId) myId = "User" + Math.floor(Math.random() * 1000);
         localStorage.setItem('mywa_simple_id', myId);
         location.reload();
@@ -111,12 +108,12 @@
         peer.on('connection', conn => {
             conn.on('data', data => {
                 if (!contacts[conn.peer]) {
-                    contacts[conn.peer] = { id: conn.peer, name: "Teman Baru ("+conn.peer+")" };
+                    contacts[conn.peer] = { id: conn.peer, name: "Teman ("+conn.peer+")" };
                     saveContacts();
-                    renderContacts();
                 }
                 saveHistory(conn.peer, { ...data, side: 'received' });
                 if(activeChatId === conn.peer) renderMessages();
+                renderContacts();
             });
         });
         renderContacts();
@@ -125,23 +122,24 @@
     function manualAddContact() {
         let tid = prompt("Masukkan ID Teman:");
         if (tid && tid.trim() !== "") {
-            let tname = prompt("Beri Nama Khusus:", tid);
+            let tname = prompt("Beri Nama Khusus (Teman Saya):", tid);
             contacts[tid] = { id: tid, name: tname || tid };
             saveContacts();
             renderContacts();
+            alert("Kontak Berhasil Ditambahkan!");
         }
     }
 
     function renderContacts() {
         let list = document.getElementById('contact-list');
         list.innerHTML = `<div class="contact-item" onclick="openChat('BOT-CATATAN', 'Bot Simpan Pesan')">
-            <div class="avatar">🤖</div><div><b>Bot Simpan Pesan</b><br><small>Simpan catatan</small></div>
+            <div class="avatar">🤖</div><div><b>Bot Simpan Pesan</b><br><small>Simpan catatan sendiri</small></div>
         </div>`;
         Object.values(contacts).forEach(c => {
             let item = document.createElement('div');
             item.className = 'contact-item';
             item.onclick = () => openChat(c.id, c.name);
-            item.innerHTML = `<div class="avatar">${c.name[0].toUpperCase()}</div>
+            item.innerHTML = `<div class="avatar">${c.name[0]}</div>
                               <div><b>${c.name}</b><br><small>ID: ${c.id}</small></div>`;
             list.appendChild(item);
         });
@@ -151,28 +149,27 @@
         activeChatId = id;
         document.getElementById('chat-screen').style.display = 'flex';
         document.getElementById('chat-title').innerText = name;
-        document.getElementById('chat-avatar').innerText = name[0].toUpperCase();
+        document.getElementById('chat-avatar').innerText = name[0];
         renderMessages();
     }
 
-    // FUNGSI SEND SUDAH DIPERBAIKI (Langsung Render)
     function sendMsg() {
         let input = document.getElementById('msg-input');
-        if(!input.value || !activeChatId) return;
+        let text = input.value;
+        if(!text || !activeChatId) return;
 
-        let data = { type: 'text', content: input.value, time: getTime() };
+        let data = { type: 'text', content: text, time: getTime() };
         
-        // 1. Simpan dan munculkan di layar sendiri dulu (instan)
+        // LANGSUNG MUNCUL DI LAYAR
         saveHistory(activeChatId, { ...data, side: 'sent' });
         renderMessages();
         
-        // 2. Baru kirim ke teman jika bukan bot
+        // KIRIM KE PEER (TEMAN)
         if (activeChatId !== 'BOT-CATATAN') {
             let conn = peer.connect(activeChatId);
             conn.on('open', () => {
                 conn.send(data);
             });
-            // Jika teman offline, pesan tetap tersimpan di riwayatmu
         }
         
         input.value = "";
@@ -200,15 +197,15 @@
     }
 
     function saveHistory(id, msg) {
-        let h = JSON.parse(localStorage.getItem('h_v151_' + id) || "[]");
+        let h = JSON.parse(localStorage.getItem('h_final_' + id) || "[]");
         h.push(msg);
-        localStorage.setItem('h_v151_' + id, JSON.stringify(h));
+        localStorage.setItem('h_final_' + id, JSON.stringify(h));
     }
 
     function renderMessages() {
         let container = document.getElementById('messages');
         container.innerHTML = "";
-        let history = JSON.parse(localStorage.getItem('h_v151_' + activeChatId) || "[]");
+        let history = JSON.parse(localStorage.getItem('h_final_' + activeChatId) || "[]");
         history.forEach(m => {
             let b = document.createElement('div');
             b.className = 'bubble ' + m.side;
