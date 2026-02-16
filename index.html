@@ -3,64 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>MyWA v15.0</title>
+    <title>MyWA Simple v15.1</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js"></script>
     <style>
         :root { --wa-green: #075e54; --wa-light: #25d366; --bg: #e5ddd5; }
         * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { margin: 0; background: var(--bg); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* Header Gaya Baru */
-        .welcome-header { background: white; text-align: center; padding: 20px 10px; border-bottom: 2px solid #ddd; }
+        /* Header Rainbow */
+        .welcome-header { background: white; text-align: center; padding: 25px 10px; border-bottom: 2px solid #ddd; }
         .rainbow-text { 
-            font-size: 32px; font-weight: 800; margin: 0;
+            font-size: 35px; font-weight: 900; margin: 0;
             background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            animation: rainbow 5s infinite linear;
+            animation: rainbow 3s infinite linear;
         }
         @keyframes rainbow { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
-        .sub-text { font-size: 12px; color: #666; margin-top: 5px; font-weight: bold; }
-
-        /* Setup ID */
-        #setup-screen { position: fixed; inset: 0; background: var(--wa-green); z-index: 2000; display: flex; align-items: center; justify-content: center; }
-        .setup-card { background: white; padding: 30px; border-radius: 15px; width: 85%; text-align: center; }
+        .sub-text { font-size: 13px; color: #444; margin-top: 5px; font-weight: bold; letter-spacing: 1px; }
 
         /* Contact List */
+        #main-ui { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         #contact-list { flex: 1; overflow-y: auto; background: white; }
-        .contact-item { padding: 15px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px; cursor: pointer; }
+        .contact-item { padding: 15px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.2s; }
+        .contact-item:active { background: #f5f5f5; }
         .avatar { width: 45px; height: 45px; background: var(--wa-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
+
+        /* Action Buttons */
+        .fab-add { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--wa-light); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 500; border: none; }
 
         /* Chat Screen */
         #chat-screen { position: fixed; inset: 0; background: var(--bg); display: none; flex-direction: column; z-index: 1000; }
         header { background: var(--wa-green); color: white; padding: 15px; display: flex; align-items: center; gap: 10px; font-weight: bold; }
-        #messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-bottom: 100px; }
-        .bubble { max-width: 80%; padding: 10px; border-radius: 10px; font-size: 15px; position: relative; word-wrap: break-word; }
-        .sent { align-self: flex-end; background: #dcf8c6; }
-        .received { align-self: flex-start; background: white; }
+        #messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-bottom: 120px; }
+        .bubble { max-width: 80%; padding: 10px; border-radius: 12px; font-size: 15px; position: relative; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .sent { align-self: flex-end; background: #dcf8c6; border-bottom-right-radius: 2px; }
+        .received { align-self: flex-start; background: white; border-bottom-left-radius: 2px; }
 
-        /* Input Area - Anti ketutup browser tab */
+        /* Input Area - UI Fixed for Browser Tabs */
         .input-area { 
-            background: #f0f0f0; padding: 10px 10px 35px 10px; 
+            background: #f0f0f0; padding: 10px 10px 40px 10px; 
             display: flex; align-items: center; gap: 10px;
             position: fixed; bottom: 0; width: 100%; border-top: 1px solid #ddd;
         }
-        #msg-input { flex: 1; padding: 12px 15px; border: none; border-radius: 25px; outline: none; font-size: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        #msg-input { flex: 1; padding: 12px 18px; border: none; border-radius: 25px; outline: none; font-size: 16px; background: white; }
         
-        .btn-action { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--wa-green); }
-        img.chat-img { max-width: 100%; border-radius: 8px; display: block; margin-bottom: 5px; }
-        .download-link { font-size: 11px; color: blue; text-decoration: underline; display: block; margin-top: 5px; }
+        .btn-action { background: none; border: none; font-size: 24px; color: var(--wa-green); padding: 5px; }
+        .chat-img { max-width: 100%; border-radius: 8px; margin-bottom: 5px; cursor: pointer; }
+        .dl-btn { font-size: 12px; color: #007bff; text-decoration: none; font-weight: bold; display: block; margin-top: 5px; }
     </style>
 </head>
 <body>
-
-    <div id="setup-screen" style="display:none;">
-        <div class="setup-card">
-            <h2>Selamat Datang</h2>
-            <p>Tentukan ID kamu sendiri:</p>
-            <input type="text" id="my-custom-id" placeholder="Contoh: irfan_kece" style="width:100%; padding:12px; margin-bottom:15px; border:1px solid #ddd; border-radius:8px;">
-            <button onclick="saveID()" style="width:100%; padding:12px; background:var(--wa-light); color:white; border:none; border-radius:8px; font-weight:bold;">Masuk</button>
-        </div>
-    </div>
 
     <div id="main-ui">
         <div class="welcome-header">
@@ -69,25 +61,21 @@
             <div id="display-my-id" style="margin-top:10px; font-size:12px; color:var(--wa-green); font-weight:bold;"></div>
         </div>
 
-        <div style="padding:15px; background:white; border-bottom:1px solid #ddd; display:flex; gap:8px;">
-            <input type="text" id="target-id" placeholder="ID Teman..." style="flex:2; padding:10px; border:1px solid #ddd; border-radius:5px;">
-            <input type="text" id="target-name" placeholder="Nama..." style="flex:1; padding:10px; border:1px solid #ddd; border-radius:5px;">
-            <button onclick="addContact()" style="background:var(--wa-green); color:white; border:none; padding:10px; border-radius:5px;">Add</button>
-        </div>
-
         <div id="contact-list">
-            <div class="contact-item" onclick="openChat('BOT-SELF', 'Bot Simpan Pesan')">
+            <div class="contact-item" onclick="openChat('BOT-CATATAN', 'Bot Simpan Pesan')">
                 <div class="avatar">🤖</div>
-                <div><b>Bot Simpan Pesan</b><br><small>Simpan catatan di sini</small></div>
+                <div><b>Bot Simpan Pesan</b><br><small>Kirim pesan ke diri sendiri</small></div>
             </div>
         </div>
+        
+        <button class="fab-add" onclick="manualAddContact()">+</button>
     </div>
 
     <div id="chat-screen">
         <header>
-            <span onclick="closeChat()" style="cursor:pointer; font-size:24px;">←</span>
+            <span onclick="closeChat()" style="cursor:pointer; font-size:25px; padding-right:10px;">←</span>
             <div class="avatar" id="chat-avatar" style="width:35px; height:35px; font-size:14px;">?</div>
-            <span id="chat-title">Nama Teman</span>
+            <span id="chat-title">Nama</span>
         </header>
         <div id="messages"></div>
         <div class="input-area">
@@ -99,61 +87,57 @@
     </div>
 
 <script>
-    let myId = localStorage.getItem('mywa_v15_id');
-    let contacts = JSON.parse(localStorage.getItem('mywa_v15_contacts') || "{}");
+    let myId = localStorage.getItem('mywa_simple_id');
+    let contacts = JSON.parse(localStorage.getItem('mywa_simple_contacts') || "{}");
     let peer, activeChatId = null;
 
+    // Pakai Prompt Biasa untuk ID awal
     if (!myId) {
-        document.getElementById('setup-screen').style.display = 'flex';
+        myId = prompt("Selamat Datang! Masukkan ID pilihan kamu sendiri:");
+        if (!myId) { 
+            myId = "User" + Math.floor(Math.random() * 1000); 
+            alert("ID tidak diisi, ID otomatis kamu: " + myId);
+        }
+        localStorage.setItem('mywa_simple_id', myId);
+        location.reload();
     } else {
         initPeer();
     }
 
-    function saveID() {
-        let val = document.getElementById('my-custom-id').value.trim();
-        if(val) {
-            localStorage.setItem('mywa_v15_id', val);
-            myId = val;
-            location.reload();
-        }
-    }
-
     function initPeer() {
-        document.getElementById('display-my-id').innerText = "ID SAYA: " + myId;
+        document.getElementById('display-my-id').innerText = "ID ANDA: " + myId;
         peer = new Peer(myId);
 
         peer.on('connection', conn => {
             conn.on('data', data => {
-                // Jika pengirim belum ada di kontak, otomatis tambahkan ID-nya
+                // Muncul otomatis kalau ada yang chat
                 if (!contacts[conn.peer]) {
-                    contacts[conn.peer] = { id: conn.peer, name: conn.peer };
+                    contacts[conn.peer] = { id: conn.peer, name: "Teman Baru ("+conn.peer+")" };
                     saveContacts();
                     renderContacts();
                 }
-                saveChat(conn.peer, { ...data, side: 'received' });
+                saveHistory(conn.peer, { ...data, side: 'received' });
                 if(activeChatId === conn.peer) renderMessages();
             });
         });
         renderContacts();
     }
 
-    function addContact() {
-        let id = document.getElementById('target-id').value.trim();
-        let name = document.getElementById('target-name').value.trim() || id;
-        if(id) {
-            contacts[id] = { id, name };
+    // Pakai Prompt Biasa untuk Tambah Kontak
+    function manualAddContact() {
+        let tid = prompt("Masukkan ID Teman:");
+        if (tid) {
+            let tname = prompt("Beri Nama Khusus (Contoh: Budi):", tid);
+            contacts[tid] = { id: tid, name: tname || tid };
             saveContacts();
             renderContacts();
-            document.getElementById('target-id').value = "";
-            document.getElementById('target-name').value = "";
         }
     }
 
     function renderContacts() {
         let list = document.getElementById('contact-list');
-        // Bersihkan list (kecuali bot)
-        list.innerHTML = `<div class="contact-item" onclick="openChat('BOT-SELF', 'Bot Simpan Pesan')">
-            <div class="avatar">🤖</div><div><b>Bot Simpan Pesan</b><br><small>Simpan catatan di sini</small></div>
+        list.innerHTML = `<div class="contact-item" onclick="openChat('BOT-CATATAN', 'Bot Simpan Pesan')">
+            <div class="avatar">🤖</div><div><b>Bot Simpan Pesan</b><br><small>Kirim pesan ke diri sendiri</small></div>
         </div>`;
         
         Object.values(contacts).forEach(c => {
@@ -161,7 +145,7 @@
             item.className = 'contact-item';
             item.onclick = () => openChat(c.id, c.name);
             item.innerHTML = `<div class="avatar">${c.name[0].toUpperCase()}</div>
-                              <div><b>${c.name}</b><br><small>${c.id}</small></div>`;
+                              <div><b>${c.name}</b><br><small>ID: ${c.id}</small></div>`;
             list.appendChild(item);
         });
     }
@@ -180,14 +164,14 @@
 
         let data = { type: 'text', content: input.value, time: getTime() };
         
-        if (activeChatId === 'BOT-SELF') {
-            saveChat(activeChatId, { ...data, side: 'sent' });
+        if (activeChatId === 'BOT-CATATAN') {
+            saveHistory(activeChatId, { ...data, side: 'sent' });
             renderMessages();
         } else {
             let conn = peer.connect(activeChatId);
             conn.on('open', () => {
                 conn.send(data);
-                saveChat(activeChatId, { ...data, side: 'sent' });
+                saveHistory(activeChatId, { ...data, side: 'sent' });
                 renderMessages();
             });
         }
@@ -206,14 +190,14 @@
                 isImage: file.type.startsWith('image/'),
                 time: getTime() 
             };
-            if(activeChatId === 'BOT-SELF') {
-                saveChat(activeChatId, { ...data, side: 'sent' });
+            if(activeChatId === 'BOT-CATATAN') {
+                saveHistory(activeChatId, { ...data, side: 'sent' });
                 renderMessages();
             } else {
                 let conn = peer.connect(activeChatId);
                 conn.on('open', () => {
                     conn.send(data);
-                    saveChat(activeChatId, { ...data, side: 'sent' });
+                    saveHistory(activeChatId, { ...data, side: 'sent' });
                     renderMessages();
                 });
             }
@@ -221,27 +205,27 @@
         reader.readAsDataURL(file);
     }
 
-    function saveChat(id, msgObj) {
-        let h = JSON.parse(localStorage.getItem('chat_v15_' + id) || "[]");
-        h.push(msgObj);
-        localStorage.setItem('chat_v15_' + id, JSON.stringify(h));
+    function saveHistory(id, msg) {
+        let h = JSON.parse(localStorage.getItem('h_v151_' + id) || "[]");
+        h.push(msg);
+        localStorage.setItem('h_v151_' + id, JSON.stringify(h));
     }
 
     function renderMessages() {
         let container = document.getElementById('messages');
         container.innerHTML = "";
-        let history = JSON.parse(localStorage.getItem('chat_v15_' + activeChatId) || "[]");
+        let history = JSON.parse(localStorage.getItem('h_v151_' + activeChatId) || "[]");
         history.forEach(m => {
             let b = document.createElement('div');
             b.className = 'bubble ' + m.side;
             if(m.type === 'text') b.innerText = m.content;
             if(m.type === 'file') {
-                if(m.isImage) b.innerHTML = `<img src="${m.content}" class="chat-img">`;
+                if(m.isImage) b.innerHTML = `<img src="${m.content}" class="chat-img" onclick="window.open('${m.content}')">`;
                 else b.innerHTML = `📄 ${m.fileName}`;
-                b.innerHTML += `<a href="${m.content}" download="${m.fileName}" class="download-link">Download</a>`;
+                b.innerHTML += `<a href="${m.content}" download="${m.fileName}" class="dl-btn">Simpan ke HP</a>`;
             }
             let t = document.createElement('div');
-            t.style.fontSize = "9px"; t.style.textAlign = "right"; t.style.opacity = "0.5";
+            t.style.fontSize = "9px"; t.style.textAlign = "right"; t.style.opacity = "0.5"; t.style.marginTop = "5px";
             t.innerText = m.time;
             b.appendChild(t);
             container.appendChild(b);
@@ -250,7 +234,7 @@
     }
 
     function getTime() { return new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}); }
-    function saveContacts() { localStorage.setItem('mywa_v15_contacts', JSON.stringify(contacts)); }
+    function saveContacts() { localStorage.setItem('mywa_simple_contacts', JSON.stringify(contacts)); }
     function closeChat() { document.getElementById('chat-screen').style.display = 'none'; activeChatId = null; }
 </script>
 </body>
