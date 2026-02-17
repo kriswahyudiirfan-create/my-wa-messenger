@@ -3,111 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>MyWA Ninja v34.0</title>
+    <title>SELAMAT DATANG</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
         :root { --wa-green: #075e54; --wa-light: #25d366; --bg: #000; --bubble-sent: #005c4b; --bubble-received: #202c33; --text: #e9edef; --blue: #34b7f1; }
-        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; background: var(--bg); height: 100vh; color: var(--text); overflow: hidden; display: flex; flex-direction: column; }
 
         /* ANIMASI PEMBUKA */
-        #opening { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; transition: 0.5s; }
-        .brand { display: flex; gap: 20px; font-size: 24px; font-weight: bold; }
-        #g-text { color: #4285F4; opacity: 0; transform: translateX(-20px); transition: 0.8s; }
-        #gem-text { color: #8E75FF; opacity: 0; transform: translateX(20px); transition: 0.8s; }
+        #opening { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; transition: 0.8s; }
+        .intro-box { position: relative; display: flex; align-items: center; justify-content: center; width: 100%; }
+        #g-text, #gem-text { position: absolute; font-size: 28px; font-weight: bold; transition: 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        #g-text { color: #4285F4; transform: translateX(-150%); opacity: 0; }
+        #gem-text { color: #8E75FF; transform: translateX(150%); opacity: 0; }
+        #irfan-text { font-size: 35px; font-weight: 900; color: var(--wa-light); opacity: 0; transform: scale(0.5); transition: 0.5s; }
 
-        /* BORDER ANIMATION */
-        @keyframes flow {
-            0% { stroke-dashoffset: 600; opacity: 1; }
-            90% { stroke-dashoffset: 0; opacity: 1; }
+        /* BORDER ANIMATION (TEBAL -> TIPIS) */
+        @keyframes flowBorder {
+            0% { stroke-dashoffset: 1000; opacity: 1; }
+            70% { stroke-dashoffset: 0; opacity: 1; }
             100% { stroke-dashoffset: 0; opacity: 0; }
         }
         .border-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
         .border-path { 
-            fill: none; stroke: var(--wa-light); stroke-width: 3; 
-            stroke-dasharray: 100, 500; stroke-linecap: round;
-            animation: flow 5s linear infinite; 
+            fill: none; stroke: var(--wa-light); stroke-width: 5; 
+            stroke-dasharray: 150, 850; stroke-linecap: round;
+            animation: flowBorder 4s infinite linear;
         }
 
-        /* UI */
-        header { background: #111b21; padding: 15px; border-bottom: 1px solid #222; z-index: 10; }
-        .tabs { display: flex; background: #111b21; border-bottom: 1px solid #222; }
-        .tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; color: #888; font-weight: bold; }
-        .tab.active { color: var(--wa-light); border-bottom: 3px solid var(--wa-light); }
+        /* LAYOUT */
+        header { background: #111b21; padding: 15px; border-bottom: 1px solid #222; text-align: left; }
+        .tabs { display: flex; background: #111b21; }
+        .tab { flex: 1; padding: 15px; text-align: center; color: #888; font-weight: bold; cursor: pointer; border-bottom: 3px solid transparent; }
+        .tab.active { color: var(--wa-light); border-bottom-color: var(--wa-light); }
 
         #main-content { flex: 1; overflow-y: auto; padding: 10px; position: relative; }
         .item-wrapper { position: relative; margin-bottom: 15px; border-radius: 12px; background: #111b21; min-height: 70px; }
-        .contact-item { padding: 15px; display: flex; align-items: center; gap: 12px; position: relative; z-index: 2; }
-        .avatar { width: 45px; height: 45px; background: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; }
+        .contact-item { padding: 15px; display: flex; align-items: center; gap: 12px; position: relative; z-index: 2; cursor: pointer; }
+        .avatar { width: 45px; height: 45px; background: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff; }
 
         /* CHAT */
-        #chat-screen, #status-view { position: fixed; inset: 0; background: #000; z-index: 5000; display: none; flex-direction: column; }
-        #messages { flex: 1; padding: 15px; overflow-y: auto; background: #0d0d0d; display: flex; flex-direction: column; gap: 8px; }
+        #chat-screen { position: fixed; inset: 0; background: #000; z-index: 5000; display: none; flex-direction: column; }
+        #messages { flex: 1; padding: 15px; overflow-y: auto; background: #0b141a; display: flex; flex-direction: column; gap: 8px; }
         .bubble { max-width: 80%; padding: 8px 12px; border-radius: 10px; font-size: 15px; position: relative; }
-        .sent { align-self: flex-end; background: var(--bubble-sent); border-bottom-right-radius: 2px; }
-        .received { align-self: flex-start; background: var(--bubble-received); border-bottom-left-radius: 2px; }
+        .sent { align-self: flex-end; background: var(--bubble-sent); border-top-right-radius: 0; }
+        .received { align-self: flex-start; background: var(--bubble-received); border-top-left-radius: 0; }
 
-        .fab { position: fixed; bottom: 25px; right: 20px; width: 60px; height: 60px; border-radius: 50%; background: var(--wa-light); color: #000; border: none; font-size: 30px; cursor: pointer; z-index: 100; box-shadow: 0 4px 15px rgba(37,211,102,0.3); }
-        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--wa-light); color: #000; padding: 10px 20px; border-radius: 20px; font-weight: bold; display: none; z-index: 10000; font-size: 13px; }
-        .typing { color: var(--wa-light); font-size: 12px; }
+        .fab { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; border-radius: 50%; background: var(--wa-light); border: none; font-size: 30px; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--wa-light); color: #000; padding: 10px 20px; border-radius: 20px; font-weight: bold; display: none; z-index: 10001; }
+        .typing { color: var(--wa-light); font-size: 11px; }
+
+        #status-view { position: fixed; inset: 0; background: #000; z-index: 6000; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
     </style>
 </head>
 <body>
 
 <div id="opening">
-    <div class="brand">
+    <div class="intro-box">
         <span id="g-text">Google</span>
         <span id="gem-text">Gemini</span>
+        <span id="irfan-text">IRFAN</span>
     </div>
 </div>
 
 <div id="toast"></div>
 
 <header>
-    <div style="font-size: 20px; font-weight: bold; color: var(--wa-light);">SELAMAT DATANG</div>
-    <div id="my-id-display" style="font-size: 11px; color: #888; margin-top: 4px; letter-spacing: 1px;"></div>
+    <div style="font-size: 18px; font-weight: bold; color: var(--wa-light);">SELAMAT DATANG</div>
+    <div id="my-id-label" style="font-size: 11px; color: #888; margin-top: 3px;"></div>
 </header>
 
 <div class="tabs">
-    <div class="tab active" id="tab-chats" onclick="switchTab('chats')">CHATS</div>
-    <div class="tab" id="tab-status" onclick="switchTab('status')">STATUS</div>
+    <div class="tab active" id="btn-chats" onclick="setTab('chats')">CHATS</div>
+    <div class="tab" id="btn-status" onclick="setTab('status')">STATUS</div>
 </div>
 
 <div id="main-content">
     <div id="list-container"></div>
 </div>
 
-<button id="main-fab" class="fab" onclick="handleFab()">+</button>
+<button class="fab" onclick="handleFab()">+</button>
 
 <div id="chat-screen">
     <div style="background:#202c33; padding:10px; display:flex; align-items:center; gap:12px;">
-        <span onclick="closeChat()" style="font-size:25px; cursor:pointer;">←</span>
+        <span onclick="closeChat()" style="font-size:25px;">←</span>
         <div id="chat-avatar" class="avatar" style="width:38px; height:38px;">?</div>
         <div style="flex:1">
-            <div id="chat-name" style="font-weight:bold; font-size:16px;">Name</div>
-            <small id="chat-status-text" style="color:#aaa;">Offline</small>
+            <div id="chat-target-name" style="font-weight:bold;">Name</div>
+            <small id="chat-target-status" style="color:#aaa;">Offline</small>
         </div>
     </div>
     <div id="messages"></div>
-    <div style="background:#111b21; padding:10px; display:flex; gap:10px; align-items:center;">
+    <div style="background:#111b21; padding:10px; display:flex; gap:10px;">
         <button onclick="document.getElementById('file-in').click()" style="background:none; border:none; font-size:20px;">📎</button>
-        <input type="file" id="file-in" style="display:none" onchange="upImg(this)">
-        <input type="text" id="msg-in" placeholder="Ketik pesan..." oninput="sendTyping()" style="flex:1; background:#2a3942; border:none; padding:12px; border-radius:25px; color:#fff; outline:none;">
-        <button onclick="sendMsg()" style="background:none; border:none; color:var(--wa-light); font-size:25px;">➤</button>
+        <input type="file" id="file-in" style="display:none" onchange="uploadFile(this)">
+        <input type="text" id="msg-input" placeholder="Ketik pesan..." oninput="handleTyping()" style="flex:1; background:#2a3942; border:none; padding:10px; border-radius:20px; color:#fff; outline:none;">
+        <button onclick="sendMessage()" style="background:none; border:none; color:var(--wa-light); font-size:25px;">➤</button>
     </div>
 </div>
 
 <div id="status-view" onclick="this.style.display='none'">
-    <div style="padding:40px; text-align:center; height:100%; display:flex; flex-direction:column; justify-content:center; background: rgba(0,0,0,0.9);">
-        <div id="sw-author" style="font-weight:bold; color:var(--wa-light); margin-bottom:15px;"></div>
-        <div id="sw-text" style="font-size:26px; line-height:1.4;"></div>
-        <div id="sw-viewers" style="margin-top:50px; font-size:12px; color:#888;"></div>
-    </div>
+    <div id="sw-author" style="color:var(--wa-light); font-weight:bold; margin-bottom:10px;"></div>
+    <div id="sw-content" style="font-size:26px; padding:20px;"></div>
+    <div id="sw-footer" style="position:fixed; bottom:30px; font-size:12px; color:#888;"></div>
 </div>
 
 <script>
-    // CONFIG FIREBASE
     const firebaseConfig = {
         apiKey: "AIzaSyBndqyGrpv7D-gelmif8YELzs-EJj237MA",
         authDomain: "mywa-irfank.firebaseapp.app",
@@ -120,291 +122,284 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // LOGIN & PRIVASI DATA
-    let myId = localStorage.getItem('mywa_id');
-    if(!myId) {
-        myId = prompt("Buat ID Unik Kamu (Contoh: ninja77):").trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-        if(!myId) location.reload();
-        localStorage.setItem('mywa_id', myId);
-    }
-    document.getElementById('my-id-display').innerText = "ID SAYA: " + myId.toUpperCase();
-
-    // Data lokal (disimpan di HP masing-masing)
-    let contacts = JSON.parse(localStorage.getItem('ninja_contacts_' + myId) || "{}");
+    let myId = localStorage.getItem('ninja_uid');
+    let contacts = {};
     let currentTab = 'chats';
     let activeChat = null;
-    let typingTimer;
+    let typeTimer;
 
-    // ANIMASI PEMBUKA
-    window.onload = () => {
-        const g = document.getElementById('g-text'), gem = document.getElementById('gem-text');
-        setTimeout(() => { g.style.opacity = 1; g.style.transform = 'translateX(0)'; }, 300);
-        setTimeout(() => { gem.style.opacity = 1; gem.style.transform = 'translateX(0)'; }, 600);
-        setTimeout(() => { 
-            document.getElementById('opening').style.opacity = 0; 
-            setTimeout(() => document.getElementById('opening').style.display = 'none', 500);
-        }, 1800);
-    };
-
-    // STATUS ONLINE SINKRON
-    const myStatusRef = db.ref('status/' + myId);
-    myStatusRef.set('online');
-    myStatusRef.onDisconnect().set('offline');
-
-    // AUTO-SAVE KONTAK BARU (INBOX)
-    db.ref('inbox/' + myId).on('child_added', snap => {
-        let senderId = snap.key;
-        if (!contacts[senderId]) {
-            contacts[senderId] = { id: senderId, name: senderId };
-            saveCon();
-            notify("Pesan Baru", senderId);
+    // LOGIN & PRIVASI
+    async function startLogin() {
+        if (!myId) {
+            let id = prompt("Buat ID Ninja Kamu (Harus Unik):").trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+            if (!id) return startLogin();
+            
+            const check = await db.ref('users/' + id).once('value');
+            if (check.exists()) {
+                alert("ID sudah ada yang punya! Silahkan buat yang lain.");
+                return startLogin();
+            }
+            myId = id;
+            await db.ref('users/' + myId).set({ registered: Date.now() });
+            localStorage.setItem('ninja_uid', myId);
         }
-    });
-
-    function saveCon() {
-        localStorage.setItem('ninja_contacts_' + myId, JSON.stringify(contacts));
-        if(currentTab === 'chats') renderChats();
+        document.getElementById('my-id-label').innerText = "ID: " + myId.toUpperCase();
+        runApp();
     }
 
-    // RENDER DAFTAR KONTAK
-    function renderChats() {
+    function runApp() {
+        contacts = JSON.parse(localStorage.getItem('contacts_' + myId) || "{}");
+        
+        // Online status
+        db.ref('status/' + myId).set('online');
+        db.ref('status/' + myId).onDisconnect().set('offline');
+
+        // Monitor pesan masuk (Auto-save)
+        db.ref('inbox/' + myId).on('child_added', snap => {
+            let from = snap.key;
+            if (!contacts[from]) {
+                contacts[from] = { id: from, name: from };
+                saveData();
+                showToast("Pesan Baru", from);
+            }
+        });
+
+        // Monitor status baru
+        db.ref('sw_notif').on('child_added', snap => {
+            let s = snap.val();
+            if (s.by !== myId && Date.now() - s.at < 5000) showToast("Status Baru", s.by);
+        });
+
+        playIntro();
+        render();
+    }
+
+    function playIntro() {
+        const g = document.getElementById('g-text'), gem = document.getElementById('gem-text'), irf = document.getElementById('irfan-text');
+        setTimeout(() => { g.style.opacity = 1; g.style.transform = 'translateX(-60%)'; }, 300);
+        setTimeout(() => { gem.style.opacity = 1; gem.style.transform = 'translateX(60%)'; }, 600);
+        setTimeout(() => {
+            g.style.opacity = 0; gem.style.opacity = 0;
+            irf.style.opacity = 1; irf.style.transform = 'scale(1)';
+        }, 1800);
+        setTimeout(() => {
+            document.getElementById('opening').style.opacity = 0;
+            setTimeout(() => document.getElementById('opening').style.display = 'none', 800);
+        }, 3000);
+    }
+
+    function saveData() {
+        localStorage.setItem('contacts_' + myId, JSON.stringify(contacts));
+        render();
+    }
+
+    function render() {
         const container = document.getElementById('list-container');
         container.innerHTML = "";
-        const list = Object.values(contacts);
         
-        if(list.length === 0) {
-            container.innerHTML = "<div style='text-align:center; color:#555; margin-top:50px;'>Belum ada kontak. Klik + untuk menambah.</div>";
-            return;
+        if (currentTab === 'chats') {
+            const list = Object.values(contacts);
+            if (list.length === 0) container.innerHTML = `<div style="text-align:center; color:#555; margin-top:100px;">Belum ada ninja di daftar.</div>`;
+            list.forEach(c => {
+                const el = document.createElement('div');
+                el.className = 'item-wrapper';
+                el.innerHTML = `
+                    <svg class="border-svg"><rect class="border-path" x="0" y="0" width="100%" height="100%" rx="12"/></svg>
+                    <div class="contact-item">
+                        <div class="avatar" onclick="openChat('${c.id}', '${c.name}')">${c.name[0].toUpperCase()}</div>
+                        <div style="flex:1" onclick="openChat('${c.id}', '${c.name}')">
+                            <div style="font-weight:bold">${c.name}</div>
+                            <small id="st-${c.id}">Offline</small>
+                        </div>
+                        <div style="display:flex; gap:15px; font-size:18px;">
+                            <span onclick="editC('${c.id}')">✏️</span>
+                            <span onclick="delC('${c.id}')" style="color:#ff4b4b;">🗑️</span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(el);
+                
+                db.ref('status/' + c.id).on('value', s => {
+                    const label = document.getElementById('st-' + c.id);
+                    if (label) label.innerText = s.val() === 'online' ? 'Online' : 'Offline';
+                });
+                db.ref('typing/' + c.id + '/' + myId).on('value', s => {
+                    const label = document.getElementById('st-' + c.id);
+                    if (label && s.val()) label.innerHTML = '<span class="typing">sedang mengetik...</span>';
+                });
+            });
+        } else {
+            container.innerHTML = "<div style='padding:10px; color:var(--wa-light); font-weight:bold;'>Status Ninja</div>";
+            db.ref('statuses').on('value', snap => {
+                if (currentTab !== 'status') return;
+                snap.forEach(child => {
+                    const s = child.val();
+                    if (Date.now() - s.at > 86400000) { child.ref.remove(); return; }
+                    const name = contacts[s.by] ? contacts[s.by].name : s.by;
+                    const el = document.createElement('div');
+                    el.className = 'item-wrapper';
+                    el.innerHTML = `
+                        <svg class="border-svg"><rect class="border-path" x="0" y="0" width="100%" height="100%" rx="12"/></svg>
+                        <div class="contact-item" onclick="openSW('${s.by}', '${s.txt}', '${child.key}')">
+                            <div class="avatar" style="border:2px solid var(--wa-light)">${name[0].toUpperCase()}</div>
+                            <div style="flex:1">
+                                <div style="font-weight:bold">${name}</div>
+                                <small>${new Date(s.at).toLocaleTimeString()}</small>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(el);
+                });
+            });
         }
-
-        list.forEach(c => {
-            const wrap = document.createElement('div');
-            wrap.className = 'item-wrapper';
-            wrap.innerHTML = `
-                <svg class="border-svg"><rect class="border-path" x="0" y="0" width="100%" height="100%" rx="12"/></svg>
-                <div class="contact-item">
-                    <div class="avatar">${c.name[0].toUpperCase()}</div>
-                    <div style="flex:1" onclick="openChat('${c.id}', '${c.name}')">
-                        <div style="font-weight:bold">${c.name}</div>
-                        <small id="list-stat-${c.id}" style="color:#888;">Offline</small>
-                    </div>
-                    <div style="display:flex; gap:15px; font-size:18px;">
-                        <span onclick="editCon('${c.id}')">✏️</span>
-                        <span onclick="delCon('${c.id}')" style="color:#ff4b4b;">🗑️</span>
-                    </div>
-                </div>
-            `;
-            container.appendChild(wrap);
-            
-            // Monitor Online & Typing di list
-            db.ref('status/' + c.id).on('value', s => {
-                const el = document.getElementById('list-stat-' + c.id);
-                if(el) el.innerText = s.val() === 'online' ? 'Online' : 'Offline';
-            });
-            db.ref('typing/' + c.id + '/' + myId).on('value', s => {
-                const el = document.getElementById('list-stat-' + c.id);
-                if(el && s.val()) el.innerHTML = '<span class="typing">sedang mengetik...</span>';
-            });
-        });
     }
 
-    function editCon(id) {
-        let n = prompt("Beri nama khusus:", contacts[id].name);
-        if(n) { contacts[id].name = n; saveCon(); }
+    // FUNGSI KONTAK
+    function editC(id) {
+        let n = prompt("Ganti Nama:", contacts[id].name);
+        if (n) { contacts[id].name = n; saveData(); }
     }
-
-    function delCon(id) {
-        if(confirm("Hapus kontak ini?")) { delete contacts[id]; saveCon(); }
+    function delC(id) {
+        if (confirm("Hapus " + contacts[id].name + "?")) { delete contacts[id]; saveData(); }
     }
 
     // CHAT SYSTEM
     function openChat(id, name) {
         activeChat = id;
-        document.getElementById('chat-screen').style.display = 'flex';
-        document.getElementById('chat-name').innerText = name;
+        const screen = document.getElementById('chat-screen');
+        screen.style.display = 'flex';
+        document.getElementById('chat-target-name').innerText = name;
         document.getElementById('chat-avatar').innerText = name[0].toUpperCase();
         
-        const chatKey = [myId, id].sort().join("_");
+        const key = [myId, id].sort().join("_");
         const box = document.getElementById('messages');
-        box.innerHTML = "";
-
-        db.ref('chats/' + chatKey).off();
-        db.ref('chats/' + chatKey).on('value', snap => {
+        
+        db.ref('chats/' + key).off();
+        db.ref('chats/' + key).on('value', snap => {
             box.innerHTML = "";
-            snap.forEach(child => {
-                const m = child.val();
-                const isMe = m.sender === myId;
-                
-                // Logika Centang
-                let tick = "✔"; 
-                let tickColor = "#888";
-                if(m.delivered) tick = "✔✔";
-                if(m.read) { tick = "✔✔"; tickColor = "var(--blue)"; }
+            snap.forEach(msg => {
+                const d = msg.val();
+                const isMe = d.s === myId;
+                let tick = "✔", color = "#888";
+                if(d.d) tick = "✔✔";
+                if(d.r) { tick = "✔✔"; color = "var(--blue)"; }
 
-                let content = m.type === 'image' ? `<img src="${m.content}" style="max-width:200px; border-radius:8px;"><br><a href="${m.content}" download style="color:var(--blue); font-size:10px;">DOWNLOAD</a>` : m.content;
-                
+                let content = d.type === 'img' ? `<img src="${d.c}" style="max-width:200px; border-radius:8px;"><br><a href="${d.c}" download style="color:var(--blue); font-size:10px;">DOWNLOAD</a>` : d.c;
+
                 box.innerHTML += `
                     <div class="bubble ${isMe?'sent':'received'}">
                         ${content}
                         <div style="font-size:9px; text-align:right; opacity:0.6; margin-top:4px;">
-                            ${m.time} ${isMe ? `<span style="color:${tickColor}">${tick}</span>` : ''}
+                            ${d.t} ${isMe ? `<span style="color:${color}">${tick}</span>` : ''}
                         </div>
                     </div>`;
-                if(!isMe && !m.read) child.ref.update({read: true});
+                if (!isMe && !d.r) msg.ref.update({r: true});
             });
             box.scrollTop = box.scrollHeight;
         });
 
-        // Update status di header chat
         db.ref('status/' + id).on('value', s => {
-            const st = document.getElementById('chat-status-text');
-            if(st) st.innerText = s.val() === 'online' ? 'Online' : 'Offline';
-            if(s.val() === 'online') {
-                db.ref('chats/' + chatKey).once('value', snap => {
-                    snap.forEach(c => { if(c.val().sender !== myId && !c.val().delivered) c.ref.update({delivered: true}); });
+            const sub = document.getElementById('chat-target-status');
+            sub.innerText = s.val() === 'online' ? 'Online' : 'Offline';
+            if (s.val() === 'online') {
+                db.ref('chats/' + key).once('value', sn => {
+                    sn.forEach(m => { if(m.val().s !== myId && !m.val().d) m.ref.update({d: true}); });
                 });
             }
         });
         db.ref('typing/' + id + '/' + myId).on('value', s => {
-            const st = document.getElementById('chat-status-text');
-            if(s.val()) st.innerHTML = '<span class="typing">mengetik...</span>';
+            if(s.val()) document.getElementById('chat-target-status').innerHTML = '<span class="typing">mengetik...</span>';
         });
     }
 
-    function sendTyping() {
-        if(!activeChat) return;
+    function handleTyping() {
+        if (!activeChat) return;
         db.ref('typing/' + myId + '/' + activeChat).set(true);
-        clearTimeout(typingTimer);
-        typingTimer = setTimeout(() => db.ref('typing/' + myId + '/' + activeChat).set(false), 2000);
+        clearTimeout(typeTimer);
+        typeTimer = setTimeout(() => db.ref('typing/' + myId + '/' + activeChat).set(false), 2000);
     }
 
-    function sendMsg() {
-        const inp = document.getElementById('msg-in');
-        if(!inp.value.trim() || !activeChat) return;
-        const chatKey = [myId, activeChat].sort().join("_");
-        
+    function sendMessage() {
+        const inp = document.getElementById('msg-input');
+        if (!inp.value.trim() || !activeChat) return;
+        const key = [myId, activeChat].sort().join("_");
         db.ref('status/' + activeChat).once('value', s => {
-            db.ref('chats/' + chatKey).push({
-                sender: myId,
-                content: inp.value,
-                type: 'text',
-                time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
-                delivered: s.val() === 'online',
-                read: false
+            db.ref('chats/' + key).push({
+                s: myId, c: inp.value, type: 'txt',
+                t: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+                d: s.val() === 'online', r: false
             });
             db.ref('inbox/' + activeChat + '/' + myId).set(Date.now());
             inp.value = "";
         });
     }
 
-    function upImg(el) {
-        const file = el.files[0];
-        const reader = new FileReader();
-        reader.onload = () => {
-            const chatKey = [myId, activeChat].sort().join("_");
-            db.ref('chats/' + chatKey).push({
-                sender: myId, content: reader.result, type: 'image',
-                time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
-                delivered: false, read: false
+    function uploadFile(el) {
+        const f = el.files[0];
+        const r = new FileReader();
+        r.onload = () => {
+            const key = [myId, activeChat].sort().join("_");
+            db.ref('chats/' + key).push({
+                s: myId, c: r.result, type: 'img',
+                t: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+                d: false, r: false
             });
             db.ref('inbox/' + activeChat + '/' + myId).set(Date.now());
         };
-        reader.readAsDataURL(file);
+        r.readAsDataURL(f);
     }
 
-    // STATUS (SW) SYSTEM
-    function renderStatus() {
-        const container = document.getElementById('list-container');
-        container.innerHTML = "<div style='padding:10px; color:var(--wa-light); font-weight:bold;'>Status Ninja (24 Jam)</div>";
-        
-        db.ref('statuses').on('value', snap => {
-            if(currentTab !== 'status') return;
-            container.innerHTML = "<div style='padding:10px; color:var(--wa-light); font-weight:bold;'>Status Ninja</div>";
-            snap.forEach(c => {
-                const s = c.val();
-                if(Date.now() - s.timestamp > 86400000) { c.ref.remove(); return; }
-                
-                const authorDisplay = contacts[s.author] ? contacts[s.author].name : s.author;
-                const wrap = document.createElement('div');
-                wrap.className = 'item-wrapper';
-                wrap.innerHTML = `
-                    <svg class="border-svg"><rect class="border-path" x="0" y="0" width="100%" height="100%" rx="12"/></svg>
-                    <div class="status-item" onclick="viewStatus('${s.author}', '${s.text}', '${c.key}')">
-                        <div class="avatar" style="border: 2px solid var(--wa-light)">${authorDisplay[0].toUpperCase()}</div>
-                        <div style="flex:1">
-                            <div style="font-weight:bold">${authorDisplay}</div>
-                            <small>${new Date(s.timestamp).toLocaleTimeString()}</small>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(wrap);
-            });
-        });
-    }
-
-    function viewStatus(authorId, text, key) {
+    // SW SYSTEM
+    function openSW(by, txt, key) {
         document.getElementById('status-view').style.display = 'flex';
-        document.getElementById('sw-author').innerText = contacts[authorId] ? contacts[authorId].name : authorId;
-        document.getElementById('sw-text').innerText = text;
-        
-        // Viewer logic
-        db.ref('statuses/' + key + '/viewers/' + myId).set(true);
-        db.ref('statuses/' + key + '/viewers').once('value', vSnap => {
-            let viewers = [];
-            vSnap.forEach(v => {
-                let vName = contacts[v.key] ? contacts[v.key].name : v.key;
-                viewers.push(vName);
-            });
-            document.getElementById('sw-viewers').innerText = "Dilihat oleh: " + viewers.join(", ");
+        document.getElementById('sw-author').innerText = contacts[by] ? contacts[by].name : by;
+        document.getElementById('sw-content').innerText = txt;
+        db.ref('statuses/' + key + '/v/' + myId).set(true);
+        db.ref('statuses/' + key + '/v').once('value', snap => {
+            let views = [];
+            snap.forEach(v => views.push(contacts[v.key] ? contacts[v.key].name : v.key));
+            document.getElementById('sw-footer').innerText = "Dilihat: " + views.join(", ");
         });
     }
 
-    // UTILITIES
+    // UTILS
     function handleFab() {
-        if(currentTab === 'chats') {
+        if (currentTab === 'chats') {
             let id = prompt("Masukkan ID Teman:").trim().toLowerCase();
-            if(id && id !== myId) {
+            if (id && id !== myId) {
                 let n = prompt("Nama Panggilan:");
-                contacts[id] = {id: id, name: n || id};
-                saveCon();
+                contacts[id] = { id: id, name: n || id };
+                saveData();
             }
         } else {
-            let txt = prompt("Tulis status kamu:");
-            if(txt) {
-                db.ref('statuses').push({ author: myId, text: txt, timestamp: Date.now() });
-                notify("Status", "Status kamu berhasil diposting");
-                db.ref('inbox').once('value', snap => {
-                    snap.forEach(user => { if(user.key !== myId) db.ref('status_notif/' + user.key).set(myId); });
-                });
+            let txt = prompt("Tulis Status:");
+            if (txt) {
+                db.ref('statuses').push({ by: myId, txt: txt, at: Date.now() });
+                db.ref('sw_notif').push({ by: myId, at: Date.now() });
             }
         }
     }
 
-    function switchTab(t) {
+    function setTab(t) {
         currentTab = t;
-        document.getElementById('tab-chats').classList.toggle('active', t === 'chats');
-        document.getElementById('tab-status').classList.toggle('active', t === 'status');
-        document.getElementById('main-fab').innerText = t === 'chats' ? "+" : "✎";
-        t === 'chats' ? renderChats() : renderStatus();
+        document.getElementById('btn-chats').classList.toggle('active', t === 'chats');
+        document.getElementById('btn-status').classList.toggle('active', t === 'status');
+        render();
     }
 
     function closeChat() { document.getElementById('chat-screen').style.display = 'none'; activeChat = null; }
 
-    function notify(title, senderId) {
-        if(activeChat === senderId) return;
-        const name = contacts[senderId] ? contacts[senderId].name : senderId;
-        const toast = document.getElementById('toast');
-        toast.innerText = `${title} dari ${name}`;
-        toast.style.display = 'block';
-        setTimeout(() => toast.style.display = 'none', 3000);
-        
-        if(Notification.permission === "granted") {
-            new Notification("Ninja WA", { body: `${title} dari ${name}` });
-        }
+    function showToast(title, from) {
+        const name = contacts[from] ? contacts[from].name : from;
+        const t = document.getElementById('toast');
+        t.innerText = title + " dari " + name;
+        t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 3000);
+        if (Notification.permission === "granted") new Notification("Ninja WA", { body: title + " dari " + name });
     }
 
-    if(Notification.permission !== "granted") Notification.requestPermission();
-    renderChats();
+    if (Notification.permission !== "granted") Notification.requestPermission();
+    startLogin();
 </script>
 </body>
 </html>
