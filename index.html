@@ -3,43 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>MyWA Pro v27.0 - Irfan & Gemini</title>
+    <title>MyWA Pro v28.0 - Irfan & Gemini</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
         :root { --wa-green: #075e54; --wa-light: #25d366; --bg: #e5ddd5; --bubble-sent: #dcf8c6; --bubble-received: #ffffff; --text: #000000; --blue: #34b7f1; }
         @media (prefers-color-scheme: dark) {
             :root { --bg: #0b141a; --bubble-sent: #005c4b; --bubble-received: #202c33; --text: #e9edef; }
-            .welcome-header, #contact-list, .status-bar { background: #111b21 !important; color: white; }
+            .welcome-header, #contact-list, .status-bar, .opening-screen { background: #111b21 !important; color: white; }
             .contact-item { border-bottom: 1px solid #222; }
         }
         * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { margin: 0; background: var(--bg); height: 100vh; display: flex; flex-direction: column; overflow: hidden; color: var(--text); }
+        
+        /* ANIMASI PEMBUKA */
+        .opening-screen { position: fixed; inset: 0; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; background: white; transition: 0.8s; }
+        .stage { width: 100%; height: 200px; position: relative; overflow: hidden; border-bottom: 2px solid #ccc; }
+        .anime { position: absolute; font-size: 50px; bottom: 10px; transition: 0.5s; }
+        #char1 { left: 10%; } #char2 { right: 10%; transform: scaleX(-1); }
+        .effect { position: absolute; width: 40px; height: 40px; border-radius: 50%; display: none; }
+        
         .welcome-header { background: white; text-align: center; padding: 10px; border-bottom: 1px solid #ddd; }
-        .status-bar { display: flex; gap: 10px; padding: 10px; overflow-x: auto; background: white; border-bottom: 1px solid #eee; min-height: 85px; }
-        .status-circle { min-width: 65px; display: flex; flex-direction: column; align-items: center; font-size: 10px; cursor: pointer; }
-        .avatar { width: 45px; height: 45px; background: var(--wa-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
+        .status-bar { display: flex; gap: 12px; padding: 10px; overflow-x: auto; background: white; border-bottom: 1px solid #eee; min-height: 90px; }
+        .status-circle { min-width: 65px; display: flex; flex-direction: column; align-items: center; font-size: 10px; cursor: pointer; position: relative; }
+        .avatar { width: 50px; height: 50px; background: var(--wa-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px; border: 2px solid transparent; }
+        .status-new { border-color: var(--wa-light) !important; }
+        
         #contact-list { flex: 1; overflow-y: auto; background: white; }
         .contact-item { padding: 12px 15px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 12px; cursor: pointer; position: relative; }
-        .online-dot { width: 12px; height: 12px; background: #bbb; border: 2px solid white; border-radius: 50%; position: absolute; left: 45px; bottom: 12px; }
+        .online-dot { width: 12px; height: 12px; background: #bbb; border: 2px solid white; border-radius: 50%; position: absolute; left: 50px; bottom: 12px; }
         .is-online { background: var(--wa-light) !important; }
+        
         #chat-screen { position: fixed; inset: 0; background: var(--bg); display: none; flex-direction: column; z-index: 4000; }
         header { background: var(--wa-green); color: white; padding: 15px; display: flex; align-items: center; gap: 10px; }
         #messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
         .bubble { max-width: 80%; padding: 8px 12px; border-radius: 12px; font-size: 15px; position: relative; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
         .sent { align-self: flex-end; background: var(--bubble-sent); }
         .received { align-self: flex-start; background: var(--bubble-received); }
-        .chat-img { max-width: 100%; border-radius: 8px; margin-top: 5px; display: block; cursor: pointer; }
+        
+        .chat-img { max-width: 100%; border-radius: 8px; margin-top: 5px; display: block; }
+        .btn-download { display: block; color: var(--blue); font-size: 11px; text-decoration: none; margin-top: 5px; font-weight: bold; cursor: pointer; }
+        
         .tick { font-size: 12px; margin-left: 5px; color: #888; }
         .tick-blue { color: var(--blue); }
-        .fab { position: fixed; bottom: 25px; right: 20px; width: 55px; height: 55px; border-radius: 50%; background: var(--wa-light); color: white; border: none; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .fab { position: fixed; bottom: 25px; right: 20px; width: 55px; height: 55px; border-radius: 50%; background: var(--wa-light); color: white; border: none; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 100; }
+        
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 20px; font-size: 13px; z-index: 10000; display: none; }
     </style>
 </head>
 <body>
 
+    <div id="opening" class="opening-screen">
+        <h3>SELANAT DATANG</h3>
+        <p>Irfan & Gemini</p>
+        <div class="stage">
+            <div id="char1" class="anime">🔥</div>
+            <div id="char2" class="anime">⚡</div>
+            <div id="effect1" class="effect" style="background:orange;"></div>
+            <div id="effect2" class="effect" style="background:cyan;"></div>
+        </div>
+        <p id="loading-text">Menyiapkan Jutsu...</p>
+    </div>
+
+    <div id="toast"></div>
+
     <div id="main-ui">
         <div class="welcome-header">
-            <h1 style="margin:0; font-size:20px;">MyWA Pro v27.0</h1>
+            <h1 style="margin:0; font-size:18px;">SELANAT DATANG dari Irfan dan Gemini</h1>
             <div id="display-my-id" style="font-size:11px; font-weight:bold; color:var(--wa-green);"></div>
         </div>
         <div class="status-bar" id="status-bar"></div>
@@ -50,7 +80,7 @@
     <div id="chat-screen">
         <header>
             <span onclick="closeChat()" style="font-size:25px; cursor:pointer">←</span>
-            <div class="avatar" id="chat-avatar" style="width:35px; height:35px;">?</div>
+            <div class="avatar" id="chat-avatar" style="width:35px; height:35px; font-size:14px;">?</div>
             <div style="flex:1">
                 <div id="chat-title" style="font-weight:bold">Nama</div>
                 <small id="chat-online-status">Offline</small>
@@ -78,31 +108,51 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    // ID & Inisialisasi
     let myId = localStorage.getItem('mywa_id') || prompt("Masukkan ID Kamu:").trim().toLowerCase();
     localStorage.setItem('mywa_id', myId);
     document.getElementById('display-my-id').innerText = "ID: " + myId;
 
+    // Animasi Pembuka
+    window.onload = () => {
+        const c1 = document.getElementById('char1');
+        const c2 = document.getElementById('char2');
+        setTimeout(() => {
+            c1.style.left = "40%"; c2.style.right = "40%";
+            setTimeout(() => {
+                document.getElementById('effect1').style.display = 'block';
+                document.getElementById('effect2').style.display = 'block';
+                document.getElementById('loading-text').innerText = "BOOM! MyWA Siap.";
+                setTimeout(() => {
+                    document.getElementById('opening').style.opacity = '0';
+                    setTimeout(() => document.getElementById('opening').style.display = 'none', 800);
+                }, 1000);
+            }, 600);
+        }, 500);
+    };
+
+    // Status Online & Notifikasi
     db.ref('status/' + myId).set('online');
     db.ref('status/' + myId).onDisconnect().set('offline');
 
+    function notify(msg) {
+        const t = document.getElementById('toast');
+        t.innerText = msg; t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 3000);
+    }
+
+    // Kontak & Chat Diri Sendiri
     let contacts = JSON.parse(localStorage.getItem('mywa_contacts') || "{}");
+    contacts[myId] = { id: myId, name: "Saya (Anda)" }; // Pesan ke diri sendiri
 
     db.ref('inbox/' + myId).on('child_added', snap => {
         let senderId = snap.key;
         if(!contacts[senderId]) {
-            contacts[senderId] = { id: senderId, name: "Baru: " + senderId };
+            contacts[senderId] = { id: senderId, name: "Kontak Baru: " + senderId };
             saveContacts();
+            notify("Pesan baru dari " + senderId);
         }
     });
-
-    function manualAddContact() {
-        let tid = prompt("Masukkan ID Teman:").trim().toLowerCase();
-        if (tid && tid !== myId) {
-            let tname = prompt("Nama Panggilan:");
-            contacts[tid] = { id: tid, name: tname || tid };
-            saveContacts();
-        }
-    }
 
     function saveContacts() {
         localStorage.setItem('mywa_contacts', JSON.stringify(contacts));
@@ -125,6 +175,7 @@
         });
     }
 
+    // Chat Logic
     let activeChatId = null;
     function openChat(id, name) {
         activeChatId = id;
@@ -141,16 +192,22 @@
             if(data) {
                 Object.entries(data).forEach(([key, m]) => {
                     const side = m.sender === myId ? 'sent' : 'received';
-                    const isRead = m.read ? 'tick-blue' : '';
+                    
+                    // Centang Logic
+                    let tickClass = "";
+                    let ticks = "✔"; 
+                    if(m.delivered) ticks = "✔✔";
+                    if(m.read) { ticks = "✔✔"; tickClass = "tick-blue"; }
+
                     let content = m.type === 'image' 
-                        ? `<img src="${m.content}" class="chat-img" onclick="downloadFile('${m.content}', 'IMG_${m.time}.png')">` 
+                        ? `<img src="${m.content}" class="chat-img"><a class="btn-download" onclick="downloadFile('${m.content}', 'IMG.png')">⬇ Download Gambar</a>` 
                         : m.content;
                     
                     container.innerHTML += `
                         <div class="bubble ${side}">
                             ${content}
                             <div style="font-size:9px; text-align:right; opacity:0.6; margin-top:4px;">
-                                ${m.time} <span class="tick ${isRead}">✔✔</span>
+                                ${m.time} <span class="tick ${tickClass}">${ticks}</span>
                             </div>
                         </div>`;
                     
@@ -162,17 +219,19 @@
             container.scrollTop = container.scrollHeight;
         });
 
-        db.ref('status/' + id).on('value', s => {
-            document.getElementById('chat-online-status').innerText = s.val() === 'online' ? 'Online' : 'Offline';
+        // Set Delivered jika kita online dan buka chat
+        db.ref('chats/' + chatKey).once('value', snap => {
+            snap.forEach(child => {
+                if(child.val().sender !== myId && !child.val().delivered) {
+                    child.ref.update({delivered: true});
+                }
+            });
         });
     }
 
-    // FITUR DOWNLOAD
     function downloadFile(base64, name) {
         const a = document.createElement("a");
-        a.href = base64;
-        a.download = name;
-        a.click();
+        a.href = base64; a.download = name; a.click();
     }
 
     function sendMsg() {
@@ -186,7 +245,10 @@
         const file = el.files[0];
         if(!file) return;
         const reader = new FileReader();
-        reader.onload = () => pushChat({ type: 'image', content: reader.result });
+        reader.onload = () => {
+            const cap = prompt("Tambah caption untuk gambar?");
+            pushChat({ type: 'image', content: reader.result, caption: cap || "" });
+        };
         reader.readAsDataURL(file);
     }
 
@@ -196,6 +258,7 @@
             ...data,
             sender: myId,
             time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+            delivered: false,
             read: false
         });
         db.ref('inbox/' + activeChatId + '/' + myId).set(Date.now());
@@ -203,35 +266,66 @@
 
     function closeChat() { document.getElementById('chat-screen').style.display = 'none'; activeChatId = null; }
 
-    // FITUR STATUS DENGAN CAPTION
+    // Fitur Status v28 (Gambar + Caption + Viewer)
     function createStatus() {
-        const caption = prompt("Tulis Caption Status Kamu:");
-        if (caption) {
-            db.ref('status_updates/' + myId).set({
-                id: myId,
-                text: caption,
-                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-                timestamp: Date.now()
-            });
-        }
+        const input = document.createElement('input');
+        input.type = 'file'; input.accept = 'image/*';
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = () => {
+                const cap = prompt("Tulis caption status:");
+                const statusData = {
+                    id: myId,
+                    img: reader.result,
+                    text: cap || "",
+                    time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                    timestamp: Date.now(),
+                    viewers: {}
+                };
+                db.ref('status_updates/' + myId).set(statusData);
+                notify("Status berhasil dipasang!");
+            };
+            reader.readAsDataURL(file);
+        };
+        input.click();
     }
 
     db.ref('status_updates').on('value', snap => {
         const bar = document.getElementById('status-bar');
         bar.innerHTML = `<div class="status-circle" onclick="createStatus()"><div class="avatar" style="background:#bbb">+</div><span>Status</span></div>`;
-        const data = snap.val();
-        if(data) {
-            Object.values(data).forEach(s => {
-                // Status hilang otomatis setelah 24 jam
-                if(Date.now() - s.timestamp < 86400000) {
-                    bar.innerHTML += `<div class="status-circle" onclick="alert('Status ${s.id}: \\n\\n${s.text}\\n\\nDiposting jam: ${s.time}')">
-                        <div class="avatar" style="border:2px solid var(--wa-light)">${s.id[0].toUpperCase()}</div>
+        snap.forEach(child => {
+            const s = child.val();
+            if(Date.now() - s.timestamp < 86400000) {
+                const isNew = !s.viewers || !s.viewers[myId];
+                bar.innerHTML += `
+                    <div class="status-circle" onclick="viewStatus('${s.id}')">
+                        <div class="avatar ${isNew ? 'status-new' : ''}">${s.id[0].toUpperCase()}</div>
                         <span>${s.id}</span>
                     </div>`;
-                }
-            });
-        }
+            }
+        });
     });
+
+    function viewStatus(ownerId) {
+        db.ref('status_updates/' + ownerId).once('value', snap => {
+            const s = snap.val();
+            const viewers = s.viewers ? Object.keys(s.viewers).join(", ") : "Belum ada";
+            // Catat kita sudah melihat
+            if(ownerId !== myId) db.ref('status_updates/' + ownerId + '/viewers/' + myId).set(true);
+            
+            alert(`STATUS DARI ${ownerId}\n\n[Gambar Terlampir]\nCaption: ${s.text}\nJam: ${s.time}\n\nDilihat oleh: ${viewers}`);
+        });
+    }
+
+    function manualAddContact() {
+        let tid = prompt("Masukkan ID Teman:").trim().toLowerCase();
+        if (tid && tid !== myId) {
+            let tname = prompt("Nama Panggilan:");
+            contacts[tid] = { id: tid, name: tname || tid };
+            saveContacts();
+        }
+    }
 
     renderContacts();
 </script>
