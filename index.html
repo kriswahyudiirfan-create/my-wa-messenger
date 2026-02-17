@@ -3,14 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>MyWA Simple v15.5</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js"></script>
+    <title>MyWA Pro v17.0 - Irfan & Gemini</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
     <style>
         :root { --wa-green: #075e54; --wa-light: #25d366; --bg: #e5ddd5; }
         * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { margin: 0; background: var(--bg); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* Header Rainbow */
+        /* Header Rainbow Khas Irfan */
         .welcome-header { background: white; text-align: center; padding: 25px 10px; border-bottom: 2px solid #ddd; }
         .rainbow-text { 
             font-size: 35px; font-weight: 900; margin: 0;
@@ -19,53 +22,35 @@
             animation: rainbow 3s infinite linear;
         }
         @keyframes rainbow { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
-        .sub-text { font-size: 13px; color: #444; margin-top: 5px; font-weight: bold; letter-spacing: 1px; }
+        .sub-text { font-size: 13px; color: #444; margin-top: 5px; font-weight: bold; }
 
         /* Contact List */
-        #main-ui { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; height: 100%; }
         #contact-list { flex: 1; overflow-y: auto; background: white; }
         .contact-item { padding: 15px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px; cursor: pointer; }
         .avatar { width: 45px; height: 45px; background: var(--wa-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; text-transform: uppercase; }
 
-        /* TOMBOL PLUS (+) DIPERBAIKI */
+        /* Tombol Tambah Kontak (+) */
         .fab-add { 
-            position: fixed; 
-            bottom: 30px; 
-            right: 25px; 
-            width: 65px; 
-            height: 65px; 
-            background: var(--wa-light); 
-            color: white; 
-            border-radius: 50%; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 40px; 
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3); 
-            z-index: 3000 !important; /* Pastikan paling depan */
-            border: none;
-            cursor: pointer;
-            line-height: 0;
+            position: fixed; bottom: 30px; right: 25px; width: 65px; height: 65px; 
+            background: var(--wa-light); color: white; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 40px; box-shadow: 0 6px 20px rgba(0,0,0,0.3); 
+            z-index: 3000; border: none; cursor: pointer;
         }
-        .fab-add:active { transform: scale(0.9); }
 
         /* Chat Screen */
         #chat-screen { position: fixed; inset: 0; background: var(--bg); display: none; flex-direction: column; z-index: 4000; }
         header { background: var(--wa-green); color: white; padding: 15px; display: flex; align-items: center; gap: 10px; font-weight: bold; }
-        #messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-bottom: 140px; }
+        #messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
         .bubble { max-width: 80%; padding: 10px; border-radius: 12px; font-size: 15px; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
         .sent { align-self: flex-end; background: #dcf8c6; border-bottom-right-radius: 2px; }
         .received { align-self: flex-start; background: white; border-bottom-left-radius: 2px; }
+        .chat-img { max-width: 100%; border-radius: 8px; margin-bottom: 5px; display: block; }
 
         /* Input Area */
-        .input-area { 
-            background: #f0f0f0; padding: 10px 10px 45px 10px; 
-            display: flex; align-items: center; gap: 10px;
-            position: fixed; bottom: 0; width: 100%; border-top: 1px solid #ddd;
-        }
-        #msg-input { flex: 1; padding: 12px 18px; border: none; border-radius: 25px; outline: none; font-size: 16px; background: white; }
+        .input-area { background: #f0f0f0; padding: 10px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #ddd; }
+        #msg-input { flex: 1; padding: 12px; border: none; border-radius: 25px; outline: none; font-size: 16px; background: white; }
         .btn-action { background: none; border: none; font-size: 24px; color: var(--wa-green); cursor: pointer; }
-        .chat-img { max-width: 100%; border-radius: 8px; margin-bottom: 5px; }
     </style>
 </head>
 <body>
@@ -76,10 +61,8 @@
             <div class="sub-text">dari IRFAN dan Gemini</div>
             <div id="display-my-id" style="margin-top:10px; font-size:12px; color:var(--wa-green); font-weight:bold;"></div>
         </div>
-
         <div id="contact-list"></div>
-        
-        <button class="fab-add" onclick="manualAddContact()" title="Tambah Kontak">+</button>
+        <button class="fab-add" onclick="manualAddContact()">+</button>
     </div>
 
     <div id="chat-screen">
@@ -98,60 +81,53 @@
     </div>
 
 <script>
-    let myId = localStorage.getItem('mywa_simple_id');
-    let contacts = JSON.parse(localStorage.getItem('mywa_simple_contacts') || "{}");
-    let peer, activeChatId = null;
+    // KODE FIREBASE IRFAN (SCREENSHOT TERBARU)
+    const firebaseConfig = {
+        apiKey: "AIzaSyBndqyGrpv7D-gelmif8YELzs-EJj237MA",
+        authDomain: "mywa-irfank.firebaseapp.com",
+        databaseURL: "https://mywa-irfank-default-rtdb.firebaseio.com",
+        projectId: "mywa-irfank",
+        storageBucket: "mywa-irfank.firebasestorage.app",
+        messagingSenderId: "567484997979",
+        appId: "1:567484997979:web:743ea53391552dfde07a7e"
+    };
 
-    if (!myId) {
-        myId = prompt("Masukan ID pilihan kamu:");
-        if (!myId) myId = "User" + Math.floor(Math.random() * 1000);
-        localStorage.setItem('mywa_simple_id', myId);
-        location.reload();
-    } else {
-        initPeer();
-    }
+    // Inisialisasi Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    function initPeer() {
-        document.getElementById('display-my-id').innerText = "ID ANDA: " + myId;
-        peer = new Peer(myId);
+    let myId = localStorage.getItem('mywa_id') || prompt("Masukan ID Kamu (Contoh: Irfan77):");
+    if (!myId) myId = "User" + Math.floor(Math.random() * 100);
+    localStorage.setItem('mywa_id', myId);
+    document.getElementById('display-my-id').innerText = "ID ANDA: " + myId;
 
-        peer.on('connection', conn => {
-            conn.on('data', data => {
-                if (!contacts[conn.peer]) {
-                    contacts[conn.peer] = { id: conn.peer, name: "Teman ("+conn.peer+")" };
-                    saveContacts();
-                }
-                saveHistory(conn.peer, { ...data, side: 'received' });
-                if(activeChatId === conn.peer) renderMessages();
-                renderContacts();
-            });
-        });
-        renderContacts();
-    }
+    let activeChatId = null;
+    let contacts = JSON.parse(localStorage.getItem('mywa_contacts') || "{}");
+
+    // Deteksi Inbox (Orang baru yang chat kita)
+    db.ref('inbox/' + myId).on('child_added', (snap) => {
+        let senderId = snap.key;
+        if (!contacts[senderId]) {
+            contacts[senderId] = { id: senderId, name: "Teman (" + senderId + ")" };
+            localStorage.setItem('mywa_contacts', JSON.stringify(contacts));
+            renderContacts();
+        }
+    });
 
     function manualAddContact() {
         let tid = prompt("Masukkan ID Teman:");
-        if (tid && tid.trim() !== "") {
-            let tname = prompt("Beri Nama Khusus:", tid);
-            contacts[tid] = { id: tid, name: tname || tid };
-            saveContacts();
+        if (tid) {
+            contacts[tid] = { id: tid, name: tid };
+            localStorage.setItem('mywa_contacts', JSON.stringify(contacts));
             renderContacts();
-            alert("Kontak Berhasil Ditambahkan!");
         }
     }
 
     function renderContacts() {
         let list = document.getElementById('contact-list');
-        list.innerHTML = `<div class="contact-item" onclick="openChat('BOT-CATATAN', 'Bot Simpan Pesan')">
-            <div class="avatar">🤖</div><div><b>Bot Simpan Pesan</b><br><small>Catatan pribadi</small></div>
-        </div>`;
+        list.innerHTML = `<div class="contact-item" onclick="openChat('BOT-CATATAN', 'Bot Simpan Pesan')"><div class="avatar">🤖</div><b>Bot Simpan Pesan</b></div>`;
         Object.values(contacts).forEach(c => {
-            let item = document.createElement('div');
-            item.className = 'contact-item';
-            item.onclick = () => openChat(c.id, c.name);
-            item.innerHTML = `<div class="avatar">${c.name[0]}</div>
-                              <div><b>${c.name}</b><br><small>ID: ${c.id}</small></div>`;
-            list.appendChild(item);
+            list.innerHTML += `<div class="contact-item" onclick="openChat('${c.id}', '${c.name}')"><div class="avatar">${c.name[0]}</div><b>${c.name}</b></div>`;
         });
     }
 
@@ -160,19 +136,17 @@
         document.getElementById('chat-screen').style.display = 'flex';
         document.getElementById('chat-title').innerText = name;
         document.getElementById('chat-avatar').innerText = name[0];
-        renderMessages();
+        const chatKey = getChatKey(myId, id);
+        
+        db.ref('chats/' + chatKey).on('value', (snapshot) => {
+            renderMessages(snapshot.val());
+        });
     }
 
     function sendMsg() {
         let input = document.getElementById('msg-input');
-        if(!input.value || !activeChatId) return;
-        let data = { type: 'text', content: input.value, time: getTime() };
-        saveHistory(activeChatId, { ...data, side: 'sent' });
-        renderMessages();
-        if (activeChatId !== 'BOT-CATATAN') {
-            let conn = peer.connect(activeChatId);
-            conn.on('open', () => conn.send(data));
-        }
+        if (!input.value || !activeChatId) return;
+        saveToFirebase({ type: 'text', content: input.value });
         input.value = "";
     }
 
@@ -181,48 +155,61 @@
         if(!file) return;
         let reader = new FileReader();
         reader.onload = () => {
-            let data = { type: 'file', content: reader.result, fileName: file.name, isImage: file.type.startsWith('image/'), time: getTime() };
-            saveHistory(activeChatId, { ...data, side: 'sent' });
-            renderMessages();
-            if(activeChatId !== 'BOT-CATATAN') {
-                let conn = peer.connect(activeChatId);
-                conn.on('open', () => conn.send(data));
-            }
+            saveToFirebase({ 
+                type: 'file', 
+                content: reader.result, 
+                fileName: file.name, 
+                isImage: file.type.startsWith('image/') 
+            });
         };
         reader.readAsDataURL(file);
     }
 
-    function saveHistory(id, msg) {
-        let h = JSON.parse(localStorage.getItem('h_final_' + id) || "[]");
-        h.push(msg);
-        localStorage.setItem('h_final_' + id, JSON.stringify(h));
+    function saveToFirebase(msgObj) {
+        let msgData = {
+            ...msgObj,
+            sender: myId,
+            time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+        };
+        db.ref('chats/' + getChatKey(myId, activeChatId)).push(msgData);
+        if (activeChatId !== 'BOT-CATATAN') {
+            db.ref('inbox/' + activeChatId + '/' + myId).set(true);
+        }
     }
 
-    function renderMessages() {
+    function renderMessages(data) {
         let container = document.getElementById('messages');
         container.innerHTML = "";
-        let history = JSON.parse(localStorage.getItem('h_final_' + activeChatId) || "[]");
-        history.forEach(m => {
-            let b = document.createElement('div');
-            b.className = 'bubble ' + m.side;
-            if(m.type === 'text') b.innerText = m.content;
-            if(m.type === 'file') {
-                if(m.isImage) b.innerHTML = `<img src="${m.content}" class="chat-img" onclick="window.open('${m.content}')">`;
-                else b.innerHTML = `📄 ${m.fileName}`;
-                b.innerHTML += `<br><a href="${m.content}" download="${m.fileName}" style="font-size:11px; color:#007bff">Download</a>`;
-            }
-            let t = document.createElement('div');
-            t.style.fontSize = "9px"; t.style.textAlign = "right"; t.style.opacity = "0.5";
-            t.innerText = m.time;
-            b.appendChild(t);
-            container.appendChild(b);
-        });
+        if (data) {
+            Object.values(data).forEach(m => {
+                let side = m.sender === myId ? 'sent' : 'received';
+                let b = document.createElement('div');
+                b.className = 'bubble ' + side;
+                
+                if(m.type === 'text') b.innerText = m.content;
+                else if(m.type === 'file') {
+                    if(m.isImage) b.innerHTML = `<img src="${m.content}" class="chat-img" onclick="window.open('${m.content}')">`;
+                    else b.innerHTML = `📄 ${m.fileName}`;
+                    b.innerHTML += `<br><a href="${m.content}" download="${m.fileName}" style="font-size:11px; color:#007bff">Download</a>`;
+                }
+
+                let t = document.createElement('div');
+                t.style.cssText = "font-size:9px; text-align:right; opacity:0.5; margin-top:3.5px;";
+                t.innerText = m.time;
+                b.appendChild(t);
+                container.appendChild(b);
+            });
+        }
         container.scrollTop = container.scrollHeight;
     }
 
-    function getTime() { return new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}); }
-    function saveContacts() { localStorage.setItem('mywa_simple_contacts', JSON.stringify(contacts)); }
-    function closeChat() { document.getElementById('chat-screen').style.display = 'none'; activeChatId = null; }
+    function getChatKey(id1, id2) { return id1 < id2 ? id1 + "_" + id2 : id2 + "_" + id1; }
+    function closeChat() { 
+        document.getElementById('chat-screen').style.display = 'none'; 
+        if (activeChatId) db.ref('chats/' + getChatKey(myId, activeChatId)).off();
+        activeChatId = null;
+    }
+    renderContacts();
 </script>
 </body>
 </html>
