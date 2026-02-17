@@ -3,19 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>MyWA Ninja v32.0</title>
+    <title>MyWA Ninja v33.0</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
         :root { --wa-green: #075e54; --wa-light: #25d366; --bg: #000; --bubble-sent: #005c4b; --bubble-received: #202c33; --text: #e9edef; --blue: #34b7f1; }
-        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { margin: 0; background: var(--bg); height: 100vh; color: var(--text); overflow: hidden; display: flex; flex-direction: column; }
 
-        /* ANIMASI PEMBUKA GOOGLE & GEMINI */
-        #opening { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; transition: opacity 0.8s; }
-        .brand-container { display: flex; gap: 50px; font-size: 28px; font-weight: bold; }
-        #g-text { color: #4285F4; transform: translateX(-100px); opacity: 0; transition: 1s; }
-        #gem-text { color: #8E75FF; transform: translateX(100px); opacity: 0; transition: 1s; }
+        /* ANIMASI PEMBUKA RINGAN */
+        #opening { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .brand-container { display: flex; gap: 30px; font-size: 24px; font-weight: bold; }
+        #g-text { color: #4285F4; opacity: 0; transform: translateX(-30px); transition: 0.8s; }
+        #gem-text { color: #8E75FF; opacity: 0; transform: translateX(30px); transition: 0.8s; }
+
+        /* BORDER ANIMATION (RINGAN) */
+        @keyframes borderFlow {
+            0% { stroke-dashoffset: 1000; opacity: 1; }
+            80% { stroke-dashoffset: 0; opacity: 1; }
+            100% { stroke-dashoffset: 0; opacity: 0; }
+        }
+        .border-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+        .border-path { fill: none; stroke: var(--wa-light); stroke-width: 2; stroke-dasharray: 150, 450; animation: borderFlow 4s linear infinite; }
 
         /* UI STRUKTUR */
         header { background: #111b21; padding: 15px; border-bottom: 1px solid #222; }
@@ -23,25 +32,22 @@
         .tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; color: #888; font-weight: bold; }
         .tab.active { color: var(--wa-light); border-bottom: 3px solid var(--wa-light); }
 
-        #main-content { flex: 1; overflow-y: auto; }
-        .contact-item, .status-item { padding: 15px; border-bottom: 1px solid #111; display: flex; align-items: center; gap: 12px; cursor: pointer; }
-        .avatar { width: 45px; height: 45px; background: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff; }
-        .online-dot { width: 10px; height: 10px; background: #444; border-radius: 50%; margin-right: 5px; display: inline-block; }
-        .is-online { background: var(--wa-light); box-shadow: 0 0 5px var(--wa-light); }
-
+        #main-content { flex: 1; overflow-y: auto; padding: 10px; }
+        .item-wrapper { position: relative; margin-bottom: 8px; border-radius: 10px; overflow: hidden; background: #111b21; }
+        .contact-item, .status-item { padding: 15px; display: flex; align-items: center; gap: 12px; cursor: pointer; position: relative; z-index: 2; }
+        .avatar { width: 45px; height: 45px; background: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        
         /* CHAT SCREEN */
         #chat-screen, #status-view { position: fixed; inset: 0; background: #000; z-index: 5000; display: none; flex-direction: column; }
-        #messages { flex: 1; padding: 15px; overflow-y: auto; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-blend-mode: overlay; background-color: #0d0d0d; display: flex; flex-direction: column; gap: 8px; }
-        .bubble { max-width: 80%; padding: 8px 12px; border-radius: 12px; font-size: 15px; color: white; position: relative; }
-        .sent { align-self: flex-end; background: var(--bubble-sent); border-bottom-right-radius: 2px; }
-        .received { align-self: flex-start; background: var(--bubble-received); border-bottom-left-radius: 2px; }
+        #messages { flex: 1; padding: 15px; overflow-y: auto; background: #0d0d0d; display: flex; flex-direction: column; gap: 6px; }
+        .bubble { max-width: 80%; padding: 8px 12px; border-radius: 10px; font-size: 15px; position: relative; }
+        .sent { align-self: flex-end; background: var(--bubble-sent); }
+        .received { align-self: flex-start; background: var(--bubble-received); }
 
         /* FAB & TOAST */
         .fab { position: fixed; bottom: 25px; right: 20px; width: 60px; height: 60px; border-radius: 50%; background: var(--wa-light); color: white; border: none; font-size: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); cursor: pointer; z-index: 100; }
         #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--wa-light); color: #000; padding: 10px 20px; border-radius: 20px; font-weight: bold; display: none; z-index: 10000; }
-        
-        /* STATUS STYLING */
-        .status-viewer-list { font-size: 11px; color: #aaa; margin-top: 5px; }
+        .typing-label { color: var(--wa-light); font-size: 11px; font-style: italic; }
     </style>
 </head>
 <body>
@@ -56,7 +62,7 @@
 <div id="toast"></div>
 
 <header>
-    <div style="font-size: 20px; font-weight: bold; color: var(--wa-light);">MyWA Ninja v32.0</div>
+    <div style="font-size: 20px; font-weight: bold; color: var(--wa-light);">SELAMAT DATANG</div>
     <div id="my-id-display" style="font-size: 11px; color: #888; margin-top: 4px;"></div>
 </header>
 
@@ -77,14 +83,14 @@
         <div id="chat-avatar" class="avatar" style="width:35px; height:35px;">?</div>
         <div style="flex:1">
             <div id="chat-name" style="font-weight:bold;">Name</div>
-            <small id="chat-status" style="color:#aaa;">Offline</small>
+            <small id="chat-sub" style="color:#aaa;">Offline</small>
         </div>
     </div>
     <div id="messages"></div>
-    <div style="background:#111b21; padding:10px; display:flex; gap:10px;">
-        <button onclick="document.getElementById('file-in').click()" style="background:none; border:none; font-size:20px; cursor:pointer;">📎</button>
+    <div style="background:#111b21; padding:10px; display:flex; gap:10px; align-items:center;">
+        <button onclick="document.getElementById('file-in').click()" style="background:none; border:none; font-size:20px;">📎</button>
         <input type="file" id="file-in" style="display:none" onchange="upImg(this)">
-        <input type="text" id="msg-in" placeholder="Ketik pesan..." style="flex:1; background:#2a3942; border:none; padding:10px; border-radius:20px; color:#fff; outline:none;">
+        <input type="text" id="msg-in" placeholder="Ketik pesan..." oninput="sendTyping()" style="flex:1; background:#2a3942; border:none; padding:10px; border-radius:20px; color:#fff; outline:none;">
         <button onclick="sendMsg()" style="background:none; border:none; color:var(--wa-light); font-size:25px;">➤</button>
     </div>
 </div>
@@ -97,7 +103,6 @@
 </div>
 
 <script>
-    // --- FIREBASE & CONFIG ---
     const firebaseConfig = {
         apiKey: "AIzaSyBndqyGrpv7D-gelmif8YELzs-EJj237MA",
         authDomain: "mywa-irfank.firebaseapp.app",
@@ -114,36 +119,38 @@
     localStorage.setItem('mywa_id', myId);
     document.getElementById('my-id-display').innerText = "ID: " + myId.toUpperCase();
 
-    let contacts = JSON.parse(localStorage.getItem('mywa_contacts') || "{}");
+    let contacts = JSON.parse(localStorage.getItem('mywa_contacts_v33') || "{}");
     let currentTab = 'chats';
     let activeChat = null;
+    let typingTimer;
 
     // --- ANIMASI PEMBUKA ---
     window.onload = () => {
         const g = document.getElementById('g-text'), gem = document.getElementById('gem-text');
-        setTimeout(() => { g.style.opacity = 1; g.style.transform = 'translateX(0)'; }, 300);
-        setTimeout(() => { gem.style.opacity = 1; gem.style.transform = 'translateX(0)'; }, 600);
-        setTimeout(() => { document.getElementById('opening').style.opacity = 0; 
-            setTimeout(() => document.getElementById('opening').style.display = 'none', 800);
-        }, 2000);
+        setTimeout(() => { g.style.opacity = 1; g.style.transform = 'translateX(0)'; }, 200);
+        setTimeout(() => { gem.style.opacity = 1; gem.style.transform = 'translateX(0)'; }, 400);
+        setTimeout(() => { 
+            document.getElementById('opening').style.opacity = 0; 
+            setTimeout(() => document.getElementById('opening').style.display = 'none', 600);
+        }, 1500);
     };
 
-    // --- LOGIKA KONTAK & PESAN ---
-    db.ref('status/' + myId).set('online');
-    db.ref('status/' + myId).onDisconnect().set('offline');
+    // --- STATUS ONLINE ---
+    db.ref('presence/' + myId).set('online');
+    db.ref('presence/' + myId).onDisconnect().set('offline');
 
-    // Auto-save kontak baru jika ada chat masuk
+    // AUTO SAVE KONTAK JIKA CHAT MASUK
     db.ref('inbox/' + myId).on('child_added', snap => {
         let senderId = snap.key;
         if (!contacts[senderId]) {
-            contacts[senderId] = { id: senderId, name: senderId }; // Simpan sebagai ID dulu
+            contacts[senderId] = { id: senderId, name: senderId };
             saveCon();
-            notify("Pesan Baru", senderId);
+            notify("Pesan", senderId);
         }
     });
 
     function saveCon() {
-        localStorage.setItem('mywa_contacts', JSON.stringify(contacts));
+        localStorage.setItem('mywa_contacts_v33', JSON.stringify(contacts));
         if(currentTab === 'chats') renderChats();
     }
 
@@ -151,27 +158,38 @@
         const container = document.getElementById('list-container');
         container.innerHTML = "";
         Object.values(contacts).forEach(c => {
-            const div = document.createElement('div');
-            div.className = 'contact-item';
-            div.innerHTML = `
-                <div class="avatar">${c.name[0].toUpperCase()}</div>
-                <div style="flex:1" onclick="openChat('${c.id}', '${c.name}')">
-                    <div style="font-weight:bold">${c.name}</div>
-                    <small><span class="online-dot" id="dot-${c.id}"></span>ID: ${c.id}</small>
+            const wrapper = document.createElement('div');
+            wrapper.className = 'item-wrapper';
+            wrapper.innerHTML = `
+                <svg class="border-svg"><rect class="border-path" x="0" y="0" width="100%" height="100%" rx="10"/></svg>
+                <div class="contact-item">
+                    <div class="avatar">${c.name[0].toUpperCase()}</div>
+                    <div style="flex:1" onclick="openChat('${c.id}', '${c.name}')">
+                        <div style="font-weight:bold">${c.name}</div>
+                        <small id="stat-${c.id}">Offline</small>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <span onclick="editCon('${c.id}')">✏️</span>
+                        <span onclick="delCon('${c.id}')">🗑️</span>
+                    </div>
                 </div>
-                <button onclick="editCon('${c.id}')" style="background:none; border:none; color:var(--blue);">✏️</button>
-                <button onclick="delCon('${c.id}')" style="background:none; border:none; color:red;">🗑️</button>
             `;
-            container.appendChild(div);
-            db.ref('status/' + c.id).on('value', s => {
-                const d = document.getElementById('dot-' + c.id);
-                if(d) s.val() === 'online' ? d.classList.add('is-online') : d.classList.remove('is-online');
+            container.appendChild(wrapper);
+            
+            // Monitor Online & Typing
+            db.ref('presence/' + c.id).on('value', s => {
+                const el = document.getElementById('stat-' + c.id);
+                if(el) el.innerText = s.val() === 'online' ? 'Online' : 'Offline';
+            });
+            db.ref('typing/' + c.id + '/' + myId).on('value', s => {
+                const el = document.getElementById('stat-' + c.id);
+                if(el && s.val()) el.innerHTML = '<span class="typing-label">mengetik...</span>';
             });
         });
     }
 
     function editCon(id) {
-        let n = prompt("Beri Nama Khusus:", contacts[id].name);
+        let n = prompt("Ganti nama panggilan:", contacts[id].name);
         if(n) { contacts[id].name = n; saveCon(); }
     }
 
@@ -187,24 +205,27 @@
         
         const key = [myId, id].sort().join("_");
         const box = document.getElementById('messages');
-        box.innerHTML = ""; // Bersihkan dulu
 
         db.ref('chats/' + key).off();
-        db.ref('chats/' + key).limitToLast(50).on('value', snap => {
+        db.ref('chats/' + key).on('value', snap => {
             box.innerHTML = "";
             snap.forEach(c => {
                 const m = c.val();
                 const isMe = m.sender === myId;
-                const tick = m.read ? '✔✔' : (m.delivered ? '✔✔' : '✔');
-                const tCls = m.read ? 'color:var(--blue)' : '';
+                
+                // Logika Centang
+                let ticks = '✔';
+                let tickColor = '#888';
+                if(m.delivered) ticks = '✔✔';
+                if(m.read) { ticks = '✔✔'; tickColor = 'var(--blue)'; }
 
-                let html = m.type === 'image' ? `<img src="${m.content}" style="max-width:200px; border-radius:8px;"><br><a href="${m.content}" download style="color:var(--blue); font-size:10px;">DOWNLOAD</a>` : m.content;
+                let body = m.type === 'image' ? `<img src="${m.content}" style="max-width:200px; border-radius:8px;"><br><a href="${m.content}" download style="color:var(--blue); font-size:10px;">DOWNLOAD</a>` : m.content;
                 
                 box.innerHTML += `
                     <div class="bubble ${isMe?'sent':'received'}">
-                        ${html}
-                        <div style="font-size:9px; text-align:right; opacity:0.5; margin-top:4px;">
-                            ${m.time} ${isMe ? `<span style="${tCls}">${tick}</span>` : ''}
+                        ${body}
+                        <div style="font-size:9px; text-align:right; opacity:0.6; margin-top:4px;">
+                            ${m.time} ${isMe ? `<span style="color:${tickColor}">${ticks}</span>` : ''}
                         </div>
                     </div>`;
                 if(!isMe && !m.read) c.ref.update({read: true});
@@ -212,112 +233,116 @@
             box.scrollTop = box.scrollHeight;
         });
 
-        // Set Delivered
-        db.ref('chats/' + key).once('value', snap => {
-            snap.forEach(c => { if(c.val().sender !== myId && !c.val().delivered) c.ref.update({delivered: true}); });
+        // Cek jika lawan bicara online untuk set Delivered
+        db.ref('presence/' + id).on('value', s => {
+            if(s.val() === 'online') {
+                db.ref('chats/' + key).once('value', snap => {
+                    snap.forEach(c => { if(c.val().sender !== myId && !c.val().delivered) c.ref.update({delivered: true}); });
+                });
+            }
         });
+    }
+
+    function sendTyping() {
+        if(!activeChat) return;
+        db.ref('typing/' + myId + '/' + activeChat).set(true);
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(() => db.ref('typing/' + myId + '/' + activeChat).set(false), 2000);
     }
 
     function sendMsg() {
         const i = document.getElementById('msg-in');
         if(!i.value.trim() || !activeChat) return;
-        pushData({ type: 'text', content: i.value });
-        i.value = "";
+        const key = [myId, activeChat].sort().join("_");
+        
+        db.ref('presence/' + activeChat).once('value', s => {
+            db.ref('chats/' + key).push({
+                sender: myId,
+                content: i.value,
+                type: 'text',
+                time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+                delivered: s.val() === 'online',
+                read: false
+            });
+            db.ref('inbox/' + activeChat + '/' + myId).set(Date.now());
+            i.value = "";
+        });
     }
 
     function upImg(el) {
         const f = el.files[0];
         const r = new FileReader();
-        r.onload = () => pushData({ type: 'image', content: r.result });
+        r.onload = () => {
+            const key = [myId, activeChat].sort().join("_");
+            db.ref('chats/' + key).push({
+                sender: myId, content: r.result, type: 'image',
+                time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+                delivered: false, read: false
+            });
+            db.ref('inbox/' + activeChat + '/' + myId).set(Date.now());
+        };
         r.readAsDataURL(f);
     }
 
-    function pushData(data) {
-        const key = [myId, activeChat].sort().join("_");
-        db.ref('chats/' + key).push({
-            ...data, sender: myId, delivered: false, read: false,
-            time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
-        });
-        db.ref('inbox/' + activeChat + '/' + myId).set(Date.now());
-    }
-
-    // --- SISTEM STATUS (SW) ---
+    // --- STATUS (SW) ---
     function renderStatus() {
         const container = document.getElementById('list-container');
-        container.innerHTML = "<div style='padding:15px; font-weight:bold; color:var(--wa-light)'>Status Terbaru (24 Jam)</div>";
+        container.innerHTML = "<div style='padding:10px; color:var(--wa-light)'>Status Terbaru (24 Jam)</div>";
         
         db.ref('statuses').on('value', snap => {
             if(currentTab !== 'status') return;
-            container.innerHTML = "<div style='padding:15px; font-weight:bold; color:var(--wa-light)'>Status Terbaru (24 Jam)</div>";
-            
+            container.innerHTML = "<div style='padding:10px; color:var(--wa-light)'>Status Terbaru</div>";
             snap.forEach(c => {
                 const s = c.val();
-                if(Date.now() - s.timestamp > 86400000) { c.ref.remove(); return; } // Hapus jika > 24 jam
-
-                const authorName = contacts[s.author] ? contacts[s.author].name : s.author;
-                const div = document.createElement('div');
-                div.className = 'status-item';
+                if(Date.now() - s.timestamp > 86400000) { c.ref.remove(); return; }
                 
-                // Hitung Viewer
-                let viewers = s.viewers ? Object.keys(s.viewers).map(vId => contacts[vId] ? contacts[vId].name : vId).join(", ") : "Belum ada";
-
-                div.innerHTML = `
-                    <div class="avatar" style="border: 2px solid var(--wa-light)">${authorName[0].toUpperCase()}</div>
-                    <div style="flex:1" onclick="viewStatus('${s.author}', '${s.text}', '${c.key}')">
-                        <div style="font-weight:bold">${authorName}</div>
-                        <small style="color:#888;">${new Date(s.timestamp).toLocaleTimeString()}</small>
-                        <div class="status-viewer-list">Dilihat oleh: ${viewers}</div>
+                const name = contacts[s.author] ? contacts[s.author].name : s.author;
+                const wrapper = document.createElement('div');
+                wrapper.className = 'item-wrapper';
+                wrapper.innerHTML = `
+                    <svg class="border-svg"><rect class="border-path" x="0" y="0" width="100%" height="100%" rx="10"/></svg>
+                    <div class="status-item" onclick="viewStatus('${s.author}', '${s.text}', '${c.key}')">
+                        <div class="avatar" style="border: 2px solid var(--wa-light)">${name[0].toUpperCase()}</div>
+                        <div style="flex:1">
+                            <div style="font-weight:bold">${name}</div>
+                            <small>${new Date(s.timestamp).toLocaleTimeString()}</small>
+                        </div>
                     </div>
                 `;
-                container.appendChild(div);
+                container.appendChild(wrapper);
             });
         });
     }
 
+    function viewStatus(authorId, text, key) {
+        document.getElementById('status-view').style.display = 'flex';
+        document.getElementById('sw-author').innerText = contacts[authorId] ? contacts[authorId].name : authorId;
+        document.getElementById('sw-text').innerText = text;
+        db.ref('statuses/' + key + '/viewers/' + myId).set(true);
+    }
+
     function handleFab() {
         if(currentTab === 'chats') {
-            let id = prompt("Masukkan ID Teman:").trim().toLowerCase();
-            if(id) { 
+            let id = prompt("ID Teman:").trim().toLowerCase();
+            if(id) {
                 let n = prompt("Nama Panggilan:");
-                contacts[id] = {id: id, name: n || id}; 
-                saveCon(); 
+                contacts[id] = {id: id, name: n || id};
+                saveCon();
             }
         } else {
-            let txt = prompt("Tulis status kamu:");
+            let txt = prompt("Tulis status:");
             if(txt) {
-                db.ref('statuses').push({
-                    author: myId,
-                    text: txt,
-                    timestamp: Date.now(),
-                    viewers: {}
-                });
-                notify("Status", "Status kamu berhasil diposting");
+                db.ref('statuses').push({ author: myId, text: txt, timestamp: Date.now() });
+                notify("Status", "Status baru diposting");
             }
         }
     }
 
-    function viewStatus(authorId, text, statusKey) {
-        const authorName = contacts[authorId] ? contacts[authorId].name : authorId;
-        document.getElementById('status-view').style.display = 'flex';
-        document.getElementById('sw-author').innerText = authorName;
-        document.getElementById('sw-text').innerText = text;
-        
-        // Tambahkan kita ke daftar viewer
-        db.ref('statuses/' + statusKey + '/viewers/' + myId).set(true);
-    }
-
-    // --- UI HELPERS ---
     function switchTab(t) {
         currentTab = t;
         document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
         event.target.classList.add('active');
-        if(t === 'chats') {
-            document.getElementById('main-fab').innerText = "+";
-            renderChats();
-        } else {
-            document.getElementById('main-fab').innerText = "✎";
-            renderStatus();
-        }
+        t === 'chats' ? renderChats() : renderStatus();
     }
 
     function closeChat() { document.getElementById('chat-screen').style.display = 'none'; activeChat = null; }
@@ -325,17 +350,13 @@
     function notify(title, senderId) {
         const name = contacts[senderId] ? contacts[senderId].name : senderId;
         const toast = document.getElementById('toast');
-        toast.innerText = `New ${title} from ${name}`;
+        toast.innerText = `Ada ${title} dari ${name}`;
         toast.style.display = 'block';
         setTimeout(() => toast.style.display = 'none', 3000);
-        
-        if(Notification.permission === "granted") {
-            new Notification("MyWA Ninja", { body: `${title} dari ${name}` });
-        } else {
-            Notification.requestPermission();
-        }
+        if(Notification.permission === "granted") new Notification("MyWA Ninja", { body: `${title} dari ${name}` });
     }
 
+    if(Notification.permission !== "granted") Notification.requestPermission();
     renderChats();
 </script>
 </body>
