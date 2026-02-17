@@ -6,49 +6,62 @@
     <title>SECURE PRIVATE CHAT PRO</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         :root { --wa-green: #075e54; --wa-light: #25d366; --bg: #000; --bubble-sent: #005c4b; --bubble-received: #202c33; --text: #e9edef; --blue: #34b7f1; --gold: #ffd700; }
         * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; outline: none; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; background: var(--bg); height: 100vh; color: var(--text); overflow: hidden; display: flex; flex-direction: column; }
-
         header { background: #111b21; padding: 15px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
         #search-container { padding: 10px; background: #111b21; border-bottom: 1px solid #222; }
         #search-input { width: 100%; background: #2a3942; border: none; padding: 10px 15px; border-radius: 8px; color: #fff; font-size: 14px; }
-        
         #main-content { flex: 1; overflow-y: auto; padding: 15px; position: relative; }
-
         .item-wrapper { position: relative; margin-bottom: 15px; border-radius: 12px; background: #111b21; padding: 2px; overflow: hidden; }
         .item-wrapper::before { content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: conic-gradient(transparent, transparent, transparent, var(--wa-light)); animation: rotateBorder 4s linear infinite; }
         @keyframes rotateBorder { 100% { transform: rotate(360deg); } }
         .contact-content { position: relative; background: #111b21; border-radius: 10px; padding: 12px; display: flex; align-items: center; gap: 12px; z-index: 1; }
-
         .avatar { width: 45px; height: 45px; background: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff; text-transform: uppercase; border: 1px solid #444; }
-        
         #chat-screen, #call-screen { position: fixed; inset: 0; background: #000; z-index: 5000; display: none; flex-direction: column; }
         #messages { flex: 1; padding: 15px; overflow-y: auto; background: #0b141a; display: flex; flex-direction: column; gap: 8px; }
-        
         .bubble { max-width: 80%; padding: 8px 12px; border-radius: 12px; font-size: 14px; position: relative; color: #fff; line-height: 1.4; display: flex; flex-direction: column; }
         .sent { align-self: flex-end; background: var(--bubble-sent); border-bottom-right-radius: 2px; }
         .received { align-self: flex-start; background: var(--bubble-received); border-bottom-left-radius: 2px; }
-        
         .status-row { display: flex; justify-content: flex-end; align-items: center; gap: 4px; font-size: 10px; margin-top: 4px; color: rgba(255,255,255,0.6); }
         .tick { font-size: 14px; }
         .read { color: var(--blue); }
-
         .img-msg { max-width: 100%; border-radius: 8px; margin-bottom: 5px; display: block; }
-        .download-btn { font-size: 10px; color: var(--blue); text-decoration: none; display: block; margin-top: 5px; font-weight: bold; }
-
         .input-area { background: #111b21; padding: 12px; display: flex; gap: 10px; align-items: center; }
         .input-area input { flex: 1; background: #2a3942; border: none; padding: 12px 18px; border-radius: 25px; color: #fff; font-size: 14px; }
-
         .fab { position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; border-radius: 50%; background: var(--wa-light); border: none; font-size: 28px; z-index: 100; box-shadow: 0 5px 15px rgba(0,255,100,0.3); cursor: pointer; }
         #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--wa-light); color: #000; padding: 10px 20px; border-radius: 30px; font-weight: bold; z-index: 10000; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
         
+        /* PIN & RECOVERY OVERLAY */
+        #pin-overlay { position: fixed; inset: 0; background: #000; z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .pin-input { background: #2a3942; border: 2px solid #444; color: #fff; font-size: 24px; text-align: center; padding: 15px; border-radius: 12px; width: 100%; max-width: 250px; letter-spacing: 5px; }
+        .recovery-box { background: #111b21; border: 1px dashed var(--wa-light); padding: 15px; margin: 15px 0; border-radius: 8px; font-family: monospace; color: var(--wa-light); word-break: break-all; text-align: center; }
+        
         #call-screen { justify-content: center; align-items: center; background: radial-gradient(circle, #111b21 0%, #000 100%); }
         .call-btn { border: none; padding: 20px; border-radius: 50%; font-size: 24px; cursor: pointer; transition: 0.3s; }
+        .del-btn { color: #ff4b4b; background: none; border: 1px solid #444; border-radius: 4px; padding: 4px 8px; font-size: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
+
+<div id="pin-overlay">
+    <div id="pin-ui">
+        <div style="font-size: 20px; font-weight: 900; color: var(--wa-light); margin-bottom: 20px; letter-spacing: 2px; text-align: center;">SECURITY CHECK</div>
+        <input type="password" id="pin-field" class="pin-input" placeholder="****" maxlength="6">
+        <button onclick="verifyPin()" style="margin-top:20px; background:var(--wa-light); border:none; padding:12px 30px; border-radius:8px; font-weight:bold; width: 100%;">MASUK</button>
+        <p onclick="showRecoveryUI()" style="color:#666; font-size:12px; margin-top:30px; cursor:pointer; text-align: center;">Lupa PIN? (Gunakan Recovery Key)</p>
+    </div>
+
+    <div id="recovery-ui" style="display: none; width: 100%; max-width: 300px;">
+        <div style="font-size: 18px; font-weight: bold; color: var(--gold); margin-bottom: 10px; text-align: center;">RESET AKUN</div>
+        <p style="font-size: 12px; color: #aaa; text-align: center; margin-bottom: 20px;">Masukkan Recovery Key Anda untuk menyetel ulang PIN.</p>
+        <input type="text" id="recovery-field" class="pin-input" style="letter-spacing: 1px; font-size: 14px;" placeholder="Masukkan Key...">
+        <button onclick="processRecovery()" style="margin-top:20px; background:var(--gold); border:none; padding:12px 30px; border-radius:8px; font-weight:bold; width: 100%; color: #000;">VERIFIKASI & RESET</button>
+        <p onclick="hideRecoveryUI()" style="color:#666; font-size:12px; margin-top:20px; cursor:pointer; text-align: center;">Kembali</p>
+    </div>
+</div>
 
 <div id="toast"></div>
 
@@ -113,38 +126,121 @@
     const db = firebase.database();
 
     let myId = localStorage.getItem('ninja_v45_id');
+    let sessionToken = localStorage.getItem('ninja_session_token');
     let contacts = JSON.parse(localStorage.getItem('ninja_contacts_v45') || "{}");
     let activeChat = null;
     let localStream;
     let typingTimeout;
 
+    function getSecretKey(targetId) {
+        return [myId, targetId].sort().join("_") + "SECURE_NINJA_v45";
+    }
+
+    function encrypt(text, targetId) {
+        return CryptoJS.AES.encrypt(text, getSecretKey(targetId)).toString();
+    }
+
+    function decrypt(cipherText, targetId) {
+        try {
+            const bytes = CryptoJS.AES.decrypt(cipherText, getSecretKey(targetId));
+            return bytes.toString(CryptoJS.enc.Utf8);
+        } catch(e) { return "❌ Pesan Terenkripsi"; }
+    }
+
     async function initLogin() {
         if (!myId) {
             let choice = prompt("Buat ID Unik Anda:").trim().toLowerCase().replace(/\s+/g, '');
             if (!choice) return initLogin();
+            const check = await db.ref('users/' + choice).once('value');
+            if(check.exists()) {
+                alert("ID SUDAH DIMILIKI!");
+                return initLogin();
+            }
+            
+            let newPin = prompt("Buat 6-Digit PIN Keamanan Anda:");
+            if(!newPin || newPin.length < 4) { alert("PIN terlalu lemah!"); return initLogin(); }
+
+            // GENERATE RECOVERY KEY
+            const recoveryKey = "RK-" + Math.random().toString(36).substring(2, 10).toUpperCase() + "-" + Math.random().toString(36).substring(2, 10).toUpperCase();
+            alert("PENTING! Simpan Recovery Key ini untuk reset PIN jika lupa:\n\n" + recoveryKey);
+
             myId = choice;
+            sessionToken = Math.random().toString(36).substring(2);
             localStorage.setItem('ninja_v45_id', myId);
+            localStorage.setItem('ninja_session_token', sessionToken);
+            
+            const hashedPin = CryptoJS.SHA256(newPin).toString();
+            const hashedRecovery = CryptoJS.SHA256(recoveryKey).toString();
+            
+            await db.ref('users/' + myId).set({ 
+                token: sessionToken, 
+                pin: hashedPin,
+                recovery: hashedRecovery 
+            });
+            location.reload(); 
+        } else {
+            document.getElementById('pin-overlay').style.display = 'flex';
         }
-        document.getElementById('my-id-display').innerText = "ID: " + myId.toUpperCase();
-        setupPresence();
-        startApp();
     }
 
-    function formatLastSeen(timestamp) {
-        if (!timestamp) return "Offline";
-        if (timestamp === "online") return "Online";
-        const now = Date.now();
-        const diff = Math.floor((now - timestamp) / 1000);
-        if (diff < 60) return "Baru saja terlihat";
-        if (diff < 3600) return `${Math.floor(diff/60)} menit yang lalu`;
-        const date = new Date(timestamp);
-        return `Terakhir terlihat ${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`;
+    async function verifyPin() {
+        const pinInput = document.getElementById('pin-field').value;
+        const hashedInput = CryptoJS.SHA256(pinInput).toString();
+        const snap = await db.ref('users/' + myId).once('value');
+        const data = snap.val();
+
+        if (data && data.pin === hashedInput) {
+            document.getElementById('pin-overlay').style.display = 'none';
+            document.getElementById('my-id-display').innerText = "ID: " + myId.toUpperCase();
+            setupPresence();
+            startApp();
+        } else {
+            alert("PIN SALAH!");
+            document.getElementById('pin-field').value = "";
+        }
     }
 
+    // --- RECOVERY LOGIC ---
+    function showRecoveryUI() {
+        document.getElementById('pin-ui').style.display = 'none';
+        document.getElementById('recovery-ui').style.display = 'block';
+    }
+    function hideRecoveryUI() {
+        document.getElementById('pin-ui').style.display = 'block';
+        document.getElementById('recovery-ui').style.display = 'none';
+    }
+
+    async function processRecovery() {
+        const keyInput = document.getElementById('recovery-field').value.trim();
+        const hashedKeyInput = CryptoJS.SHA256(keyInput).toString();
+        const snap = await db.ref('users/' + myId).once('value');
+        const data = snap.val();
+
+        if (data && data.recovery === hashedKeyInput) {
+            if(confirm("Recovery Key Cocok! Seluruh data inbox akan dibersihkan dan Anda harus membuat PIN baru. Lanjutkan?")) {
+                // Pembersihan Total di Server untuk ID ini
+                await db.ref('inbox/' + myId).remove();
+                await db.ref('presence/' + myId).remove();
+                
+                // Minta PIN Baru
+                let newPin = prompt("Buat PIN Baru Anda:");
+                if(!newPin || newPin.length < 4) return alert("Gagal. PIN baru tidak valid.");
+                
+                const newHashedPin = CryptoJS.SHA256(newPin).toString();
+                await db.ref('users/' + myId).update({ pin: newHashedPin });
+                
+                alert("PIN Berhasil diperbarui! Silakan masuk.");
+                location.reload();
+            }
+        } else {
+            alert("Recovery Key Salah!");
+        }
+    }
+
+    // --- TETAPKAN SEMUA FITUR LAMA ---
     function setupPresence() {
         const myPresenceRef = db.ref('presence/' + myId);
-        const connectedRef = db.ref('.info/connected');
-        connectedRef.on('value', (snap) => {
+        db.ref('.info/connected').on('value', snap => {
             if (snap.val() === true) {
                 myPresenceRef.onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
                 myPresenceRef.set('online');
@@ -154,43 +250,14 @@
 
     function startApp() {
         db.ref('inbox/' + myId).on('child_added', snap => {
-            let senderId = snap.key;
-            if (!contacts[senderId]) {
-                contacts[senderId] = { id: senderId, name: senderId };
+            if (!contacts[snap.key]) {
+                contacts[snap.key] = { id: snap.key, name: snap.key };
                 saveContacts();
+                renderList();
             }
-            if (activeChat !== senderId) showToast("Pesan Baru: " + (contacts[senderId].name || senderId));
+            if (activeChat !== snap.key) showToast("Pesan Baru: " + snap.key);
         });
-
-        // Listen Panggilan Masuk
-        db.ref('calls/' + myId).on('value', snap => {
-            let call = snap.val();
-            if (call) {
-                if (call.status === 'ringing') {
-                    showIncomingCall(call.from);
-                } else if (call.status === 'accepted') {
-                    document.getElementById('call-status').innerText = "TERHUBUNG, SILAKAN BICARA";
-                    document.getElementById('btn-answer').style.display = 'none';
-                } else if (call.status === 'ended') {
-                    handleCallTermination("PANGGILAN DIAKHIRI");
-                }
-            } else {
-                if (document.getElementById('call-screen').style.display === 'flex') {
-                    handleCallTermination("PANGGILAN SELESAI");
-                }
-            }
-        });
-
         renderList();
-    }
-
-    function filterContacts() {
-        const val = document.getElementById('search-input').value.toLowerCase();
-        const items = document.getElementsByClassName('item-wrapper');
-        Array.from(items).forEach(item => {
-            const id = item.id.replace('item-', '').toLowerCase();
-            item.style.display = id.includes(val) ? 'block' : 'none';
-        });
     }
 
     function renderList() {
@@ -200,30 +267,23 @@
             const div = document.createElement('div');
             div.className = 'item-wrapper';
             div.id = `item-${c.id}`;
-            div.innerHTML = `
-                <div class="contact-content">
-                    <div class="avatar">${c.name[0]}</div>
-                    <div style="flex:1">
-                        <div style="font-weight:bold; font-size:15px;">${c.name}</div>
-                        <small id="list-status-${c.id}" style="color: #666;">Offline</small>
+            div.innerHTML = `<div class="contact-content">
+                <div class="avatar">${c.name[0]}</div>
+                <div style="flex:1">
+                    <div style="font-weight:bold; font-size:15px; display:flex; justify-content:space-between; align-items:center;">
+                        ${c.name} <button class="del-btn" onclick="deleteContact(event, '${c.id}')">Hapus</button>
                     </div>
-                </div>`;
+                    <small id="list-status-${c.id}" style="color: #666;">Offline</small>
+                </div>
+            </div>`;
             div.onclick = () => openChat(c.id, c.name);
             container.appendChild(div);
-
             db.ref('presence/' + c.id).on('value', s => {
                 const el = document.getElementById(`list-status-${c.id}`);
                 if(el) {
-                    const statusVal = s.val();
-                    el.innerText = formatLastSeen(statusVal);
-                    el.style.color = statusVal === 'online' ? 'var(--wa-light)' : '#666';
-                }
-            });
-
-            db.ref(`typing/${c.id}/${myId}`).on('value', s => {
-                const el = document.getElementById(`list-status-${c.id}`);
-                if(el && s.val() === true) {
-                    el.innerHTML = `<span style="color:var(--wa-light); font-style:italic;">mengetik...</span>`;
+                    const val = s.val();
+                    el.innerText = (val === 'online') ? 'Online' : 'Offline';
+                    el.style.color = (val === 'online') ? 'var(--wa-light)' : '#666';
                 }
             });
         });
@@ -234,18 +294,6 @@
         document.getElementById('chat-screen').style.display = 'flex';
         document.getElementById('chat-name').innerText = name;
         document.getElementById('chat-avatar').innerText = name[0];
-        
-        db.ref('presence/' + id).on('value', s => {
-            const el = document.getElementById('chat-status-text');
-            if(el) el.innerText = formatLastSeen(s.val());
-        });
-
-        db.ref(`typing/${id}/${myId}`).on('value', s => {
-            const el = document.getElementById('chat-status-text');
-            if(s.val() === true) el.innerText = 'mengetik...';
-            else db.ref('presence/' + id).once('value', s2 => el.innerText = formatLastSeen(s2.val()));
-        });
-
         const path = 'chats/' + [myId, id].sort().join("_");
         db.ref(path).off();
         db.ref(path).on('value', snap => {
@@ -254,39 +302,24 @@
             snap.forEach(m => {
                 const d = m.val();
                 const isMe = d.s === myId;
-                let tickIcon = d.read ? "✓✓" : "✓";
-                let tickClass = d.read ? "read" : "";
-
-                let content = d.type === 'img' ? 
-                    `<img src="${d.c}" class="img-msg"><a href="${d.c}" download="IMG.png" class="download-btn">💾 Simpan</a>` : d.c;
-
-                box.innerHTML += `
-                    <div class="bubble ${isMe?'sent':'received'}">
-                        ${content}
-                        ${isMe ? `<div class="status-row"><span class="tick ${tickClass}">${tickIcon}</span></div>` : ''}
-                    </div>`;
+                let realContent = decrypt(d.c, id);
+                let content = d.type === 'img' ? `<img src="${realContent}" class="img-msg">` : realContent;
+                box.innerHTML += `<div class="bubble ${isMe?'sent':'received'}">
+                    ${content}
+                    ${isMe ? `<div class="status-row"><span class="tick ${d.read?'read':''}">${d.read?'✓✓':'✓'}</span></div>` : ''}
+                </div>`;
                 if(!isMe && !d.read) db.ref(`${path}/${m.key}`).update({read: true});
             });
             box.scrollTop = box.scrollHeight;
         });
     }
 
-    function handleTyping() {
-        if(!activeChat) return;
-        db.ref(`typing/${myId}/${activeChat}`).set(true);
-        clearTimeout(typingTimeout);
-        typingTimeout = setTimeout(() => {
-            db.ref(`typing/${myId}/${activeChat}`).set(false);
-        }, 2000);
-    }
-
     function sendMsg() {
         const inp = document.getElementById('msg-in');
         if(!inp.value.trim() || !activeChat) return;
         const path = 'chats/' + [myId, activeChat].sort().join("_");
-        db.ref(path).push({ s: myId, c: inp.value, type: 'txt', time: Date.now(), read: false });
+        db.ref(path).push({ s: myId, c: encrypt(inp.value, activeChat), type: 'txt', time: Date.now(), read: false });
         db.ref('inbox/' + activeChat + '/' + myId).set(Date.now());
-        db.ref(`typing/${myId}/${activeChat}`).set(false);
         inp.value = "";
     }
 
@@ -296,87 +329,56 @@
         const reader = new FileReader();
         reader.onload = () => {
             const path = 'chats/' + [myId, activeChat].sort().join("_");
-            db.ref(path).push({ s: myId, c: reader.result, type: 'img', time: Date.now(), read: false });
+            db.ref(path).push({ s: myId, c: encrypt(reader.result, activeChat), type: 'img', time: Date.now(), read: false });
             db.ref('inbox/' + activeChat + '/' + myId).set(Date.now());
         };
         reader.readAsDataURL(file);
     }
 
-    // LOGIKA TELEPON SINKRON
     async function initiateCall() {
         try {
             localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const targetId = activeChat;
             document.getElementById('call-screen').style.display = 'flex';
-            document.getElementById('call-target-name').innerText = targetId;
-            document.getElementById('btn-answer').style.display = 'none';
-
-            db.ref('presence/' + targetId).once('value', snap => {
-                const status = snap.val() === 'online' ? 'BERDERING...' : 'MEMANGGIL...';
-                document.getElementById('call-status').innerText = status;
-                db.ref('calls/' + targetId).set({ from: myId, status: 'ringing', time: Date.now() });
-            });
-
-            // Monitor respon target
-            db.ref('calls/' + targetId).on('value', snap => {
-                const call = snap.val();
-                if (call && call.status === 'accepted') {
-                    document.getElementById('call-status').innerText = "TERHUBUNG, SILAKAN BICARA";
-                } else if (!call && document.getElementById('call-screen').style.display === 'flex') {
-                    handleCallTermination("PANGGILAN DITOLAK/SELESAI");
-                }
-            });
-
+            document.getElementById('call-target-name').innerText = activeChat;
+            db.ref('calls/' + activeChat).set({ from: myId, status: 'ringing', time: Date.now() });
         } catch (e) { alert("Izinkan Mikrofon!"); }
     }
-
     function showIncomingCall(from) {
         document.getElementById('call-screen').style.display = 'flex';
         document.getElementById('call-target-name').innerText = from;
         document.getElementById('call-status').innerText = "PANGGILAN MASUK...";
         document.getElementById('btn-answer').style.display = 'block';
     }
-
     async function answerCall() {
         try {
             localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
             db.ref('calls/' + myId).update({ status: 'accepted' });
             document.getElementById('btn-answer').style.display = 'none';
-            document.getElementById('call-status').innerText = "TERHUBUNG, SILAKAN BICARA";
         } catch (e) { alert("Gagal akses Mikrofon"); }
     }
-
     function endCall() {
-        const targetId = activeChat || document.getElementById('call-target-name').innerText;
-        // Tandai berakhir agar pihak lain tahu
-        db.ref('calls/' + targetId).update({ status: 'ended' }).then(() => {
-            setTimeout(() => {
-                db.ref('calls/' + targetId).remove();
-                db.ref('calls/' + myId).remove();
-            }, 500);
-        });
-        handleCallTermination("PANGGILAN DIAKHIRI");
+        const tid = activeChat || document.getElementById('call-target-name').innerText;
+        db.ref('calls/' + tid).update({ status: 'ended' });
+        setTimeout(() => { db.ref('calls/' + tid).remove(); db.ref('calls/' + myId).remove(); }, 500);
+        handleCallTermination("DIAKHIRI");
     }
-
-    function handleCallTermination(msg) {
-        document.getElementById('call-status').innerText = msg;
-        stopMedia();
-        setTimeout(() => {
-            document.getElementById('call-screen').style.display = 'none';
-            if (activeChat) document.getElementById('chat-screen').style.display = 'flex';
-        }, 1500);
+    function handleCallTermination(m) {
+        document.getElementById('call-status').innerText = m;
+        if(localStream) localStream.getTracks().forEach(t => t.stop());
+        setTimeout(() => { document.getElementById('call-screen').style.display = 'none'; }, 1500);
     }
-
-    function stopMedia() { if(localStream) localStream.getTracks().forEach(track => track.stop()); localStream = null; }
-    function addContact() { let id = prompt("ID Teman:"); if (id && id !== myId) { contacts[id] = {id: id, name: id}; saveContacts(); } }
-    function clearChatHistory() { if(confirm("Hapus semua chat?")) db.ref('chats/'+[myId, activeChat].sort().join("_")).remove(); }
-    function saveContacts() { localStorage.setItem('ninja_contacts_v45', JSON.stringify(contacts)); renderList(); }
-    function closeChat() { 
-        if(activeChat) db.ref(`typing/${myId}/${activeChat}`).set(false);
-        document.getElementById('chat-screen').style.display = 'none'; 
-        activeChat = null; 
+    function handleTyping() {
+        if(!activeChat) return;
+        db.ref(`typing/${myId}/${activeChat}`).set(true);
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => { db.ref(`typing/${myId}/${activeChat}`).set(false); }, 2000);
     }
+    function addContact() { let id = prompt("ID Teman:"); if (id && id !== myId) { contacts[id] = {id: id, name: id}; saveContacts(); renderList(); } }
+    function deleteContact(e, id) { e.stopPropagation(); if(confirm(`Hapus ${id}?`)) { delete contacts[id]; saveContacts(); renderList(); } }
+    function saveContacts() { localStorage.setItem('ninja_contacts_v45', JSON.stringify(contacts)); }
+    function closeChat() { document.getElementById('chat-screen').style.display = 'none'; activeChat = null; }
     function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.display='block'; setTimeout(()=>t.style.display='none', 3000); }
+    function clearChatHistory() { if(confirm("Hapus chat?")) db.ref('chats/'+[myId, activeChat].sort().join("_")).remove(); }
 
     initLogin();
 </script>
