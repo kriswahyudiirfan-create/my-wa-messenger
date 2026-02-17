@@ -3,39 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>MyWA Pro v19.0 - Irfan & Gemini</title>
+    <title>MyWA Pro v21.0 - Irfan & Gemini</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
     <style>
-        :root { --wa-green: #075e54; --wa-light: #25d366; --bg: #e5ddd5; }
+        :root { --wa-green: #075e54; --wa-light: #25d366; --bg: #e5ddd5; --blue-tick: #34b7f1; }
         * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { margin: 0; background: var(--bg); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* Rainbow Header */
+        /* Header Re-styled */
         .welcome-header { background: white; text-align: center; padding: 20px 10px; border-bottom: 2px solid #ddd; }
-        .rainbow-text { font-size: 30px; font-weight: 900; margin: 0; background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet); -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: rainbow 3s infinite linear; }
+        .rainbow-text { font-size: 28px; font-weight: 900; margin: 0; background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet); -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: rainbow 3s infinite linear; }
         @keyframes rainbow { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
+        .sub-header { font-size: 12px; color: #555; font-weight: bold; }
 
-        /* Konten Utama */
         #contact-list { flex: 1; overflow-y: auto; background: white; }
         .contact-item { padding: 15px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px; cursor: pointer; position: relative; }
         .avatar { width: 45px; height: 45px; background: var(--wa-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; text-transform: uppercase; }
         
-        /* Titik Online */
         .status-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; position: absolute; left: 48px; bottom: 15px; background: #bbb; }
         .online { background: var(--wa-light); }
 
+        /* Badge Pesan Baru (Ijo Buket) */
+        .unread-badge { background: var(--wa-light); color: white; border-radius: 50%; min-width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; margin-left: auto; }
+
         .fab-add { position: fixed; bottom: 30px; right: 25px; width: 65px; height: 65px; background: var(--wa-light); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; box-shadow: 0 6px 20px rgba(0,0,0,0.3); z-index: 3000; border: none; cursor: pointer; }
 
-        /* Layar Chat */
         #chat-screen { position: fixed; inset: 0; background: var(--bg); display: none; flex-direction: column; z-index: 4000; }
         header { background: var(--wa-green); color: white; padding: 15px; display: flex; align-items: center; gap: 10px; font-weight: bold; }
         #messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-        .bubble { max-width: 80%; padding: 10px; border-radius: 12px; font-size: 15px; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.1); position: relative; }
+        
+        .bubble { max-width: 80%; padding: 8px 12px; border-radius: 12px; font-size: 15px; word-wrap: break-word; box-shadow: 0 1px 1px rgba(0,0,0,0.1); position: relative; min-width: 60px; }
         .sent { align-self: flex-end; background: #dcf8c6; border-bottom-right-radius: 2px; }
         .received { align-self: flex-start; background: white; border-bottom-left-radius: 2px; }
+
+        .meta { display: flex; align-items: center; justify-content: flex-end; gap: 3px; font-size: 10px; opacity: 0.6; margin-top: 4px; }
+        .tick { font-size: 14px; font-weight: bold; line-height: 1; }
+        .read { color: var(--blue-tick); }
 
         .input-area { background: #f0f0f0; padding: 10px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #ddd; }
         #msg-input { flex: 1; padding: 12px; border: none; border-radius: 25px; outline: none; font-size: 16px; }
@@ -46,7 +52,8 @@
 
     <div id="main-ui">
         <div class="welcome-header">
-            <h1 class="rainbow-text">MYWA PRO</h1>
+            <h1 class="rainbow-text">SELAMAT DATANG</h1>
+            <div class="sub-header">dari Irfan dan Gemini</div>
             <div id="display-my-id" style="font-size:12px; color:var(--wa-green); font-weight:bold; margin-top:5px;"></div>
         </div>
         <div id="contact-list"></div>
@@ -57,25 +64,24 @@
         <header>
             <span onclick="closeChat()" style="cursor:pointer; font-size:25px;">←</span>
             <div class="avatar" id="chat-avatar" style="width:35px; height:35px; font-size:14px;">?</div>
-            <div style="display:flex; flex-direction:column; flex:1" onclick="renameContact()">
+            <div style="display:flex; flex-direction:column; flex:1">
                 <span id="chat-title">Nama</span>
                 <small id="chat-status" style="font-size:10px; font-weight:normal;">Offline</small>
             </div>
         </header>
         <div id="messages"></div>
         <div class="input-area">
-            <input type="file" id="file-input" style="display:none" onchange="handleFile()">
             <button class="btn-action" onclick="document.getElementById('file-input').click()">📎</button>
-            <input type="text" id="msg-input" placeholder="Ketik pesan...">
+            <input type="file" id="file-input" style="display:none" onchange="handleFile()">
+            <input type="text" id="msg-input" placeholder="Ketik pesan..." oninput="handleTyping()">
             <button class="btn-action" onclick="sendMsg()">➤</button>
         </div>
     </div>
 
 <script>
-    // Konfigurasi dari screenshot Irfan
     const firebaseConfig = {
         apiKey: "AIzaSyBndqyGrpv7D-gelmif8YELzs-EJj237MA",
-        authDomain: "mywa-irfank.firebaseapp.com",
+        authDomain: "mywa-irfank.firebaseapp.app",
         databaseURL: "https://mywa-irfank-default-rtdb.firebaseio.com",
         projectId: "mywa-irfank",
         storageBucket: "mywa-irfank.firebasestorage.app",
@@ -86,56 +92,72 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 1. SET ID (Wajib isi, tidak random)
     let myId = localStorage.getItem('mywa_id');
-    while (!myId || myId.trim() === "") {
-        myId = prompt("PENTING: Masukkan ID Kamu (Misal: Irfan77):");
+    if (!myId) {
+        myId = prompt("Pilih ID Kamu Sendiri (Misal: Irfan77):");
+        while(!myId) myId = prompt("ID tidak boleh kosong!");
+        localStorage.setItem('mywa_id', myId.trim());
     }
-    localStorage.setItem('mywa_id', myId.trim());
     document.getElementById('display-my-id').innerText = "ID ANDA: " + myId;
 
-    // 2. STATUS ONLINE SAYA
+    // Status Online
     const myStatusRef = db.ref('status/' + myId);
-    myStatusRef.set(true);
-    myStatusRef.onDisconnect().remove();
+    myStatusRef.set('online');
+    myStatusRef.onDisconnect().set('offline');
 
-    let activeChatId = null;
-    let contacts = JSON.parse(localStorage.getItem('mywa_contacts') || "{}");
-
-    // 3. IZIN NOTIFIKASI
-    if ("Notification" in window && Notification.permission !== "granted") {
+    // Minta Izin Notifikasi
+    if ("Notification" in window) {
         Notification.requestPermission();
     }
 
-    // 4. DETEKSI CHAT MASUK (INBOX)
+    let activeChatId = null;
+    let contacts = JSON.parse(localStorage.getItem('mywa_contacts') || "{}");
+    let typingTimeout;
+
+    // Deteksi Chat Masuk & Notifikasi
     db.ref('inbox/' + myId).on('child_added', (snap) => {
-        let senderId = snap.key;
-        if (!contacts[senderId]) {
-            contacts[senderId] = { id: senderId, name: "Baru: " + senderId };
+        let tid = snap.key;
+        if (!contacts[tid]) {
+            contacts[tid] = { id: tid, name: "Teman " + tid };
             saveContacts();
         }
         
-        // Notifikasi Browser
-        if (activeChatId !== senderId && Notification.permission === "granted") {
-            new Notification("Pesan dari " + (contacts[senderId].name || senderId));
-        }
+        // Listener Pesan Baru untuk Notifikasi & Badge
+        const chatKey = getChatKey(myId, tid);
+        db.ref('chats/' + chatKey).limitToLast(1).on('child_added', (msgSnap) => {
+            let m = msgSnap.val();
+            if (m.sender !== myId && !m.read) {
+                // Tampilkan Notifikasi jika sedang tidak chat dengan orang tersebut
+                if (activeChatId !== tid) {
+                    showNotification(tid, m.content);
+                    updateUnreadBadge(tid, true);
+                }
+            }
+        });
     });
 
-    function manualAddContact() {
-        let tid = prompt("Masukkan ID Teman:");
-        if (tid && tid !== myId) {
-            let tname = prompt("Beri Nama Khusus:", tid);
-            contacts[tid] = { id: tid, name: tname || tid };
-            saveContacts();
+    function showNotification(sender, text) {
+        if (Notification.permission === "granted") {
+            new Notification("Pesan dari " + sender, { body: text, icon: 'https://cdn-icons-png.flaticon.com/512/733/733585.png' });
         }
     }
 
-    function renameContact() {
-        if (activeChatId === 'BOT-CATATAN') return;
-        let newName = prompt("Ubah Nama Panggilan Teman:", document.getElementById('chat-title').innerText);
-        if (newName) {
-            contacts[activeChatId].name = newName;
-            document.getElementById('chat-title').innerText = newName;
+    function updateUnreadBadge(tid, show) {
+        let badge = document.getElementById('badge-' + tid);
+        if (badge) badge.style.display = show ? 'flex' : 'none';
+    }
+
+    function handleTyping() {
+        if (!activeChatId) return;
+        db.ref('typing/' + activeChatId + '/' + myId).set(true);
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => db.ref('typing/' + activeChatId + '/' + myId).set(false), 2000);
+    }
+
+    function manualAddContact() {
+        let tid = prompt("ID Teman:");
+        if (tid && tid !== myId) {
+            contacts[tid] = { id: tid, name: tid };
             saveContacts();
         }
     }
@@ -148,18 +170,16 @@
     function renderContacts() {
         let list = document.getElementById('contact-list');
         list.innerHTML = `<div class="contact-item" onclick="openChat('BOT-CATATAN', 'Bot Simpan')"><div class="avatar">🤖</div><b>Catatan Pribadi</b></div>`;
-        
         Object.values(contacts).forEach(c => {
-            let div = document.createElement('div');
-            div.className = 'contact-item';
-            div.innerHTML = `<div class="avatar">${c.name[0]}</div><div class="status-dot" id="dot-${c.id}"></div><b>${c.name}</b>`;
-            div.onclick = () => openChat(c.id, c.name);
-            list.appendChild(div);
-
-            // Pantau Status Online Teman
+            list.innerHTML += `<div class="contact-item" onclick="openChat('${c.id}', '${c.name}')">
+                <div class="avatar">${c.name[0]}</div>
+                <div class="status-dot" id="dot-${c.id}"></div>
+                <b>${c.name}</b>
+                <div class="unread-badge" id="badge-${c.id}" style="display:none">!</div>
+            </div>`;
             db.ref('status/' + c.id).on('value', snap => {
                 let dot = document.getElementById('dot-' + c.id);
-                if (dot) snap.val() ? dot.classList.add('online') : dot.classList.remove('online');
+                if (dot) snap.val() === 'online' ? dot.classList.add('online') : dot.classList.remove('online');
             });
         });
     }
@@ -169,55 +189,48 @@
         document.getElementById('chat-screen').style.display = 'flex';
         document.getElementById('chat-title').innerText = name;
         document.getElementById('chat-avatar').innerText = name[0];
+        updateUnreadBadge(id, false);
         
+        db.ref('viewing/' + myId).set(activeChatId);
+
         const chatKey = getChatKey(myId, id);
-        db.ref('chats/' + chatKey).off(); // Reset listener lama
-        db.ref('chats/' + chatKey).on('value', (snap) => {
+        db.ref('chats/' + chatKey).on('value', snap => {
             renderMessages(snap.val());
+            Object.keys(snap.val() || {}).forEach(msgKey => {
+                if (snap.val()[msgKey].sender !== myId) {
+                    db.ref('chats/' + chatKey + '/' + msgKey + '/read').set(true);
+                }
+            });
         });
 
-        // Status di header
-        db.ref('status/' + id).on('value', snap => {
-            document.getElementById('chat-status').innerText = snap.val() ? "Online" : "Offline";
+        // Status Online & Mengetik
+        db.ref('status/' + id).on('value', s => {
+            db.ref('typing/' + myId + '/' + id).on('value', t => {
+                let txt = s.val() === 'online' ? 'Online' : 'Offline';
+                if (t.val()) txt = 'sedang mengetik...';
+                document.getElementById('chat-status').innerText = txt;
+            });
         });
     }
 
-    function sendMsg() {
+    async function sendMsg() {
         let input = document.getElementById('msg-input');
         if (!input.value.trim() || !activeChatId) return;
-        
-        const msgData = {
+
+        const tStatus = (await db.ref('status/' + activeChatId).once('value')).val();
+        const tViewing = (await db.ref('viewing/' + activeChatId).once('value')).val();
+
+        let msgData = {
             sender: myId,
             content: input.value,
-            type: 'text',
-            time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+            time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+            delivered: tStatus === 'online',
+            read: tViewing === myId
         };
 
         db.ref('chats/' + getChatKey(myId, activeChatId)).push(msgData);
-        
-        if (activeChatId !== 'BOT-CATATAN') {
-            db.ref('inbox/' + activeChatId + '/' + myId).set(Date.now());
-        }
+        db.ref('inbox/' + activeChatId + '/' + myId).set(Date.now());
         input.value = "";
-    }
-
-    function handleFile() {
-        let file = document.getElementById('file-input').files[0];
-        if(!file) return;
-        let reader = new FileReader();
-        reader.onload = () => {
-            let msgData = {
-                sender: myId,
-                type: 'file',
-                content: reader.result,
-                fileName: file.name,
-                isImage: file.type.startsWith('image/'),
-                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
-            };
-            db.ref('chats/' + getChatKey(myId, activeChatId)).push(msgData);
-            if (activeChatId !== 'BOT-CATATAN') db.ref('inbox/' + activeChatId + '/' + myId).set(Date.now());
-        };
-        reader.readAsDataURL(file);
     }
 
     function renderMessages(data) {
@@ -226,27 +239,21 @@
         if (data) {
             Object.values(data).forEach(m => {
                 let side = m.sender === myId ? 'sent' : 'received';
-                let b = document.createElement('div');
-                b.className = 'bubble ' + side;
-                if(m.type === 'text') b.innerText = m.content;
-                else if(m.type === 'file') {
-                    if(m.isImage) b.innerHTML = `<img src="${m.content}" style="max-width:100%; border-radius:8px;">`;
-                    else b.innerHTML = `📄 ${m.fileName}`;
-                    b.innerHTML += `<br><a href="${m.content}" download="${m.fileName}" style="font-size:10px; color:blue;">Download</a>`;
-                }
-                let t = document.createElement('div');
-                t.style = "font-size:9px; opacity:0.5; text-align:right; margin-top:5px;";
-                t.innerText = m.time;
-                b.appendChild(t);
-                container.appendChild(b);
+                let tickClass = m.read ? 'tick read' : 'tick';
+                let tickIcon = m.delivered || m.read ? '✓✓' : '✓';
+                container.innerHTML += `<div class="bubble ${side}">${m.content}<div class="meta">${m.time} ${side === 'sent' ? `<span class="${tickClass}">${tickIcon}</span>` : ''}</div></div>`;
             });
         }
         container.scrollTop = container.scrollHeight;
     }
 
     function getChatKey(id1, id2) { return id1 < id2 ? id1 + "_" + id2 : id2 + "_" + id1; }
-    function closeChat() { document.getElementById('chat-screen').style.display = 'none'; activeChatId = null; }
-    
+    function closeChat() { 
+        db.ref('viewing/' + myId).remove();
+        document.getElementById('chat-screen').style.display = 'none'; 
+        activeChatId = null; 
+    }
+
     renderContacts();
 </script>
 </body>
