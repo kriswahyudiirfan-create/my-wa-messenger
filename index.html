@@ -28,7 +28,8 @@
         .status-row { display: flex; justify-content: flex-end; align-items: center; gap: 4px; font-size: 10px; margin-top: 4px; color: rgba(255,255,255,0.6); }
         .tick { font-size: 14px; }
         .read { color: var(--blue); }
-        .img-msg { max-width: 100%; border-radius: 8px; margin-bottom: 5px; display: block; }
+        .img-msg { max-width: 100%; border-radius: 8px; margin-bottom: 5px; display: block; cursor: pointer; }
+        .dl-btn { font-size: 10px; color: var(--blue); background: none; border: 1px solid #333; border-radius: 4px; padding: 2px 5px; margin-top: 5px; cursor: pointer; text-align: center; }
         .input-area { background: #111b21; padding: 12px; display: flex; gap: 10px; align-items: center; }
         .input-area input { flex: 1; background: #2a3942; border: none; padding: 12px 18px; border-radius: 25px; color: #fff; font-size: 14px; }
         .fab { position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; border-radius: 50%; background: var(--wa-light); border: none; font-size: 28px; z-index: 100; box-shadow: 0 5px 15px rgba(0,255,100,0.3); cursor: pointer; }
@@ -52,10 +53,8 @@
         <button onclick="verifyPin()" style="margin-top:20px; background:var(--wa-light); border:none; padding:12px 30px; border-radius:8px; font-weight:bold; width: 100%;">MASUK</button>
         <p onclick="showRecoveryUI()" style="color:#666; font-size:12px; margin-top:30px; cursor:pointer; text-align: center;">Lupa PIN? (Gunakan Recovery Key)</p>
     </div>
-
     <div id="recovery-ui" style="display: none; width: 100%; max-width: 300px;">
         <div style="font-size: 18px; font-weight: bold; color: var(--gold); margin-bottom: 10px; text-align: center;">RESET AKUN</div>
-        <p style="font-size: 12px; color: #aaa; text-align: center; margin-bottom: 20px;">Masukkan Recovery Key Anda untuk menyetel ulang PIN.</p>
         <input type="text" id="recovery-field" class="pin-input" style="letter-spacing: 1px; font-size: 14px;" placeholder="Masukkan Key...">
         <button onclick="processRecovery()" style="margin-top:20px; background:var(--gold); border:none; padding:12px 30px; border-radius:8px; font-weight:bold; width: 100%; color: #000;">VERIFIKASI & RESET</button>
         <p onclick="hideRecoveryUI()" style="color:#666; font-size:12px; margin-top:20px; cursor:pointer; text-align: center;">Kembali</p>
@@ -72,7 +71,7 @@
 </header>
 
 <div id="search-container">
-    <input type="text" id="search-input" placeholder="Cari ID atau nama kontak..." oninput="renderList()">
+    <input type="text" id="search-input" placeholder="Cari ID atau nama..." oninput="renderList()">
 </div>
 
 <div id="main-content">
@@ -87,7 +86,7 @@
         <div id="chat-avatar" class="avatar" style="width:40px; height:40px;">?</div>
         <div style="flex:1">
             <div id="chat-name" style="font-weight:bold; font-size:15px;">User</div>
-            <small id="chat-status-text" style="color:var(--wa-light); font-size:11px;">Offline</small>
+            <small id="chat-status-text" style="font-size:11px; color:#aaa;">Offline</small>
         </div>
         <span onclick="initiateCall()" style="font-size:22px; cursor:pointer; padding: 10px;">📞</span>
         <button onclick="clearChatHistory()" style="background:none; border:none; color:#ff4b4b; font-size:12px; font-weight: bold;">Clear</button>
@@ -96,7 +95,7 @@
     <div class="input-area">
         <button onclick="document.getElementById('file-in').click()" style="background:none; border:none; font-size:22px; color: #888;">📎</button>
         <input type="file" id="file-in" style="display:none" onchange="uploadMedia(this)">
-        <input type="text" id="msg-in" placeholder="Ketik pesan..." onkeydown="handleTyping()">
+        <input type="text" id="msg-in" placeholder="Ketik pesan..." oninput="handleTyping()">
         <button onclick="sendMsg()" style="background:none; border:none; color:var(--wa-light); font-size:26px;">➤</button>
     </div>
 </div>
@@ -108,7 +107,7 @@
         <button id="btn-answer" onclick="answerCall()" style="display:none; background:var(--wa-light);" class="call-btn">📞</button>
         <button id="btn-end" onclick="endCall()" style="background:#ff4b4b;" class="call-btn">📵</button>
     </div>
-    <audio id="remoteAudio" autoplay></audio>
+    <audio id="remoteAudio" autoplay style="display:none"></audio>
 </div>
 
 <script>
@@ -125,112 +124,75 @@
     const db = firebase.database();
 
     let myId = localStorage.getItem('ninja_v45_id');
-    let sessionToken = localStorage.getItem('ninja_session_token');
     let contacts = JSON.parse(localStorage.getItem('ninja_contacts_v45') || "{}");
     let activeChat = null;
-    let localStream;
     let typingTimeout;
+    let localStream = null;
+    let peerConnection = null;
 
-    function getSecretKey(targetId) {
-        return [myId, targetId].sort().join("_") + "SECURE_NINJA_v45";
-    }
-
-    function encrypt(text, targetId) {
-        return CryptoJS.AES.encrypt(text, getSecretKey(targetId)).toString();
-    }
-
+    // --- ENKRIPSI ---
+    function getSecretKey(targetId) { return [myId, targetId].sort().join("_") + "SECURE_NINJA_v45"; }
+    function encrypt(text, targetId) { return CryptoJS.AES.encrypt(text, getSecretKey(targetId)).toString(); }
     function decrypt(cipherText, targetId) {
-        try {
-            const bytes = CryptoJS.AES.decrypt(cipherText, getSecretKey(targetId));
-            return bytes.toString(CryptoJS.enc.Utf8);
-        } catch(e) { return "❌ Pesan Terenkripsi"; }
+        try { return CryptoJS.AES.decrypt(cipherText, getSecretKey(targetId)).toString(CryptoJS.enc.Utf8); } 
+        catch(e) { return "❌ Pesan Terenkripsi"; }
     }
 
+    // --- LOGIN ---
     async function initLogin() {
         if (!myId) {
-            let choice = prompt("Buat/Masukkan ID Anda:").trim().toLowerCase().replace(/\s+/g, '');
+            let choice = prompt("Masukkan ID Anda:").trim().toLowerCase().replace(/\s+/g, '');
             if (!choice) return initLogin();
-            
             const check = await db.ref('users/' + choice).once('value');
             if(check.exists()) {
-                myId = choice;
-                localStorage.setItem('ninja_v45_id', myId);
-                location.reload();
+                myId = choice; localStorage.setItem('ninja_v45_id', myId); location.reload();
             } else {
-                let newPin = prompt("Buat 6-Digit PIN:");
-                if(!newPin || newPin.length < 4) return initLogin();
+                let newPin = prompt("Buat PIN 6-Digit:");
                 const recoveryKey = "RK-" + Math.random().toString(36).substring(2, 10).toUpperCase();
-                alert("SIMPAN RECOVERY KEY INI:\n" + recoveryKey);
-                
-                myId = choice;
-                sessionToken = Math.random().toString(36).substring(2);
-                localStorage.setItem('ninja_v45_id', myId);
-                localStorage.setItem('ninja_session_token', sessionToken);
-                await db.ref('users/' + myId).set({ 
-                    token: sessionToken, 
-                    pin: CryptoJS.SHA256(newPin).toString(),
-                    recovery: CryptoJS.SHA256(recoveryKey).toString()
-                });
+                alert("SIMPAN RECOVERY KEY: " + recoveryKey);
+                myId = choice; localStorage.setItem('ninja_v45_id', myId);
+                await db.ref('users/' + myId).set({ pin: CryptoJS.SHA256(newPin).toString(), recovery: CryptoJS.SHA256(recoveryKey).toString() });
                 location.reload();
             }
-        } else {
-            document.getElementById('pin-overlay').style.display = 'flex';
-        }
+        } else { document.getElementById('pin-overlay').style.display = 'flex'; }
     }
 
     async function verifyPin() {
         const pinInput = document.getElementById('pin-field').value;
         const snap = await db.ref('users/' + myId).once('value');
-        const data = snap.val();
-        if (data && data.pin === CryptoJS.SHA256(pinInput).toString()) {
+        if (snap.val() && snap.val().pin === CryptoJS.SHA256(pinInput).toString()) {
             document.getElementById('pin-overlay').style.display = 'none';
             document.getElementById('my-id-display').innerText = "ID: " + myId.toUpperCase();
             setupPresence();
             startApp();
-        } else {
-            alert("PIN SALAH!");
-        }
+        } else { alert("PIN SALAH!"); }
     }
 
-    function showRecoveryUI() {
-        document.getElementById('pin-ui').style.display = 'none';
-        document.getElementById('recovery-ui').style.display = 'block';
-    }
-    function hideRecoveryUI() {
-        document.getElementById('pin-ui').style.display = 'block';
-        document.getElementById('recovery-ui').style.display = 'none';
+    // --- DOWNLOAD GAMBAR ---
+    function downloadImage(dataUrl, fileName) {
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = fileName || "SECURE_IMG_" + Date.now();
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
-    async function processRecovery() {
-        const keyInput = document.getElementById('recovery-field').value.trim();
-        const snap = await db.ref('users/' + myId).once('value');
-        const data = snap.val();
+    // --- STATUS ONLINE ---
+    function formatTime(ts) {
+        if (ts === 'online') return 'Online';
+        const d = new Date(ts);
+        return `Terakhir dilihat ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+    }
 
-        // LOGIKA PERBAIKAN: Jika akun lama belum punya recovery key di server
-        if (data && !data.recovery) {
-            if(confirm("Akun lama terdeteksi tanpa Recovery Key. Reset sekarang?")) {
-                performReset();
+    function setupPresence() {
+        const myRef = db.ref('presence/' + myId);
+        db.ref('.info/connected').on('value', s => {
+            if (s.val()) {
+                myRef.onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
+                myRef.set('online');
             }
-            return;
-        }
-
-        if (data && data.recovery === CryptoJS.SHA256(keyInput).toString()) {
-            performReset();
-        } else {
-            alert("Recovery Key Salah!");
-        }
-    }
-
-    async function performReset() {
-        let newPin = prompt("Buat PIN Baru:");
-        const newRecovery = "RK-" + Math.random().toString(36).substring(2, 10).toUpperCase();
-        alert("PIN DIPERBARUI. RECOVERY KEY BARU ANDA (SIMPAN!):\n" + newRecovery);
-        await db.ref('inbox/' + myId).remove();
-        await db.ref('users/' + myId).update({ 
-            pin: CryptoJS.SHA256(newPin).toString(),
-            recovery: CryptoJS.SHA256(newRecovery).toString()
         });
-        location.reload();
     }
 
     function renderList() {
@@ -238,7 +200,7 @@
         const search = document.getElementById('search-input').value.toLowerCase();
         container.innerHTML = "";
         Object.values(contacts).forEach(c => {
-            if (c.id.toLowerCase().includes(search) || c.name.toLowerCase().includes(search)) {
+            if (c.id.includes(search) || c.name.toLowerCase().includes(search)) {
                 const div = document.createElement('div');
                 div.className = 'item-wrapper';
                 div.innerHTML = `<div class="contact-content">
@@ -246,70 +208,32 @@
                     <div style="flex:1">
                         <div style="font-weight:bold; font-size:15px; display:flex; justify-content:space-between;">
                             ${c.name} 
-                            <div>
-                                <button class="edit-btn" onclick="editContactName(event, '${c.id}')">Nama</button>
-                                <button class="del-btn" onclick="deleteContact(event, '${c.id}')">Hapus</button>
-                            </div>
+                            <div><button class="edit-btn" onclick="editName(event,'${c.id}')">Nama</button>
+                            <button class="del-btn" onclick="delContact(event,'${c.id}')">Hapus</button></div>
                         </div>
-                        <small id="list-status-${c.id}" style="color: #666;">Offline</small>
+                        <small id="list-status-${c.id}" style="color:#aaa;">Offline</small>
                     </div>
                 </div>`;
                 div.onclick = () => openChat(c.id, c.name);
                 container.appendChild(div);
                 db.ref('presence/' + c.id).on('value', s => {
                     const el = document.getElementById(`list-status-${c.id}`);
-                    if(el) {
-                        el.innerText = (s.val() === 'online') ? 'Online' : 'Offline';
-                        el.style.color = (s.val() === 'online') ? 'var(--wa-light)' : '#666';
-                    }
+                    if(!el) return;
+                    db.ref(`typing/${c.id}/${myId}`).on('value', t => {
+                        if (t.val()) { el.innerText = "Sedang mengetik..."; el.style.color = "var(--wa-light)"; }
+                        else { el.innerText = formatTime(s.val()); el.style.color = (s.val()==='online'?"var(--wa-light)":"#aaa"); }
+                    });
                 });
             }
         });
     }
 
-    function editContactName(e, id) {
-        e.stopPropagation();
-        let newName = prompt("Beri nama khusus untuk kontak ini:", contacts[id].name);
-        if (newName) {
-            contacts[id].name = newName;
-            saveContacts();
-            renderList();
-        }
-    }
+    function editName(e, id) { e.stopPropagation(); let n = prompt("Nama baru:", contacts[id].name); if(n){ contacts[id].name=n; saveC(); renderList(); }}
+    function delContact(e, id) { e.stopPropagation(); if(confirm("Hapus?")){ delete contacts[id]; saveC(); renderList(); }}
+    function addContact() { let id = prompt("ID Teman:").trim().toLowerCase(); if(id && id!==myId){ contacts[id]={id, name:id}; saveC(); renderList(); }}
+    function saveC() { localStorage.setItem('ninja_contacts_v45', JSON.stringify(contacts)); }
 
-    function addContact() { 
-        let id = prompt("Masukkan ID Teman:").trim().toLowerCase(); 
-        if (id && id !== myId) { 
-            if(!contacts[id]) contacts[id] = {id: id, name: id}; 
-            saveContacts(); 
-            renderList(); 
-        } 
-    }
-
-    function saveContacts() { localStorage.setItem('ninja_contacts_v45', JSON.stringify(contacts)); }
-    function deleteContact(e, id) { e.stopPropagation(); if(confirm(`Hapus ${id}?`)) { delete contacts[id]; saveContacts(); renderList(); } }
-
-    // Sisa fungsi (Chat, Call, Typing) tetap sama
-    function setupPresence() {
-        const myPresenceRef = db.ref('presence/' + myId);
-        db.ref('.info/connected').on('value', snap => {
-            if (snap.val() === true) {
-                myPresenceRef.onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
-                myPresenceRef.set('online');
-            }
-        });
-    }
-    function startApp() {
-        db.ref('inbox/' + myId).on('child_added', snap => {
-            if (!contacts[snap.key]) {
-                contacts[snap.key] = { id: snap.key, name: snap.key };
-                saveContacts();
-                renderList();
-            }
-            if (activeChat !== snap.key) showToast("Pesan Baru: " + snap.key);
-        });
-        renderList();
-    }
+    // --- CHAT ---
     function openChat(id, name) {
         activeChat = id;
         document.getElementById('chat-screen').style.display = 'flex';
@@ -321,19 +245,28 @@
             const box = document.getElementById('messages');
             box.innerHTML = "";
             snap.forEach(m => {
-                const d = m.val();
-                const isMe = d.s === myId;
-                let realContent = decrypt(d.c, id);
-                let content = d.type === 'img' ? `<img src="${realContent}" class="img-msg">` : realContent;
-                box.innerHTML += `<div class="bubble ${isMe?'sent':'received'}">
-                    ${content}
-                    ${isMe ? `<div class="status-row"><span class="tick ${d.read?'read':''}">${d.read?'✓✓':'✓'}</span></div>` : ''}
-                </div>`;
-                if(!isMe && !d.read) db.ref(`${path}/${m.key}`).update({read: true});
+                const d = m.val(); const isMe = d.s === myId;
+                const realContent = decrypt(d.c, id);
+                let contentUI = realContent;
+                if(d.type === 'img') {
+                    contentUI = `<img src="${realContent}" class="img-msg" onclick="downloadImage('${realContent}')">
+                                 <div class="dl-btn" onclick="downloadImage('${realContent}')">Download Gambar</div>`;
+                }
+                box.innerHTML += `<div class="bubble ${isMe?'sent':'received'}">${contentUI}
+                    ${isMe?`<div class="status-row"><span class="tick ${d.read?'read':''}">${d.read?'✓✓':'✓'}</span></div>`:''}</div>`;
+                if(!isMe && !d.read) db.ref(`${path}/${m.key}`).update({read:true});
             });
             box.scrollTop = box.scrollHeight;
         });
+        db.ref('presence/' + id).on('value', s => {
+            const head = document.getElementById('chat-status-text');
+            db.ref(`typing/${id}/${myId}`).on('value', t => {
+                if (t.val()) { head.innerText = "Sedang mengetik..."; head.style.color = "var(--wa-light)"; }
+                else { head.innerText = formatTime(s.val()); head.style.color = (s.val()==='online'?"var(--wa-light)":"#aaa"); }
+            });
+        });
     }
+
     function sendMsg() {
         const inp = document.getElementById('msg-in');
         if(!inp.value.trim() || !activeChat) return;
@@ -341,56 +274,101 @@
         db.ref(path).push({ s: myId, c: encrypt(inp.value, activeChat), type: 'txt', time: Date.now(), read: false });
         db.ref('inbox/' + activeChat + '/' + myId).set(Date.now());
         inp.value = "";
+        db.ref(`typing/${myId}/${activeChat}`).set(false);
     }
-    function uploadMedia(el) {
-        const file = el.files[0];
-        if (!file || !activeChat) return;
-        const reader = new FileReader();
-        reader.onload = () => {
-            const path = 'chats/' + [myId, activeChat].sort().join("_");
-            db.ref(path).push({ s: myId, c: encrypt(reader.result, activeChat), type: 'img', time: Date.now(), read: false });
-            db.ref('inbox/' + activeChat + '/' + myId).set(Date.now());
-        };
-        reader.readAsDataURL(file);
-    }
-    async function initiateCall() {
-        try {
-            localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            document.getElementById('call-screen').style.display = 'flex';
-            document.getElementById('call-target-name').innerText = activeChat;
-            db.ref('calls/' + activeChat).set({ from: myId, status: 'ringing', time: Date.now() });
-        } catch (e) { alert("Izinkan Mikrofon!"); }
-    }
-    function showIncomingCall(from) {
-        document.getElementById('call-screen').style.display = 'flex';
-        document.getElementById('call-target-name').innerText = from;
-        document.getElementById('call-status').innerText = "PANGGILAN MASUK...";
-        document.getElementById('btn-answer').style.display = 'block';
-    }
-    async function answerCall() {
-        try {
-            localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            db.ref('calls/' + myId).update({ status: 'accepted' });
-            document.getElementById('btn-answer').style.display = 'none';
-        } catch (e) { alert("Gagal akses Mikrofon"); }
-    }
-    function endCall() {
-        const tid = activeChat || document.getElementById('call-target-name').innerText;
-        db.ref('calls/' + tid).update({ status: 'ended' });
-        setTimeout(() => { db.ref('calls/' + tid).remove(); db.ref('calls/' + myId).remove(); }, 500);
-        handleCallTermination("DIAKHIRI");
-    }
-    function handleCallTermination(m) {
-        document.getElementById('call-status').innerText = m;
-        if(localStream) localStream.getTracks().forEach(t => t.stop());
-        setTimeout(() => { document.getElementById('call-screen').style.display = 'none'; }, 1500);
-    }
+
     function handleTyping() {
         if(!activeChat) return;
         db.ref(`typing/${myId}/${activeChat}`).set(true);
         clearTimeout(typingTimeout);
-        typingTimeout = setTimeout(() => { db.ref(`typing/${myId}/${activeChat}`).set(false); }, 2000);
+        typingTimeout = setTimeout(() => db.ref(`typing/${myId}/${activeChat}`).set(false), 2000);
     }
+
+    function uploadMedia(el) {
+        const file = el.files[0]; if (!file || !activeChat) return;
+        const r = new FileReader();
+        r.onload = () => {
+            const path = 'chats/' + [myId, activeChat].sort().join("_");
+            db.ref(path).push({ s: myId, c: encrypt(r.result, activeChat), type: 'img', time: Date.now(), read: false });
+            db.ref('inbox/' + activeChat + '/' + myId).set(Date.now());
+        };
+        r.readAsDataURL(file);
+    }
+
+    // --- FITUR TELEPON AUDIO (WEBRTC) ---
+    async function setupAudio() {
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        peerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+        peerConnection.ontrack = e => document.getElementById('remoteAudio').srcObject = e.streams[0];
+    }
+
+    async function initiateCall() {
+        if (!activeChat) return;
+        await setupAudio();
+        document.getElementById('call-screen').style.display = 'flex';
+        document.getElementById('call-target-name').innerText = activeChat;
+        const callRef = db.ref('calls/' + activeChat);
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        callRef.set({ from: myId, status: 'ringing', offer: JSON.stringify(offer) });
+        
+        callRef.on('value', async snap => {
+            const data = snap.val();
+            if (data && data.answer) {
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(JSON.parse(data.answer)));
+                document.getElementById('call-status').innerText = "TERHUBUNG";
+            }
+            if (data && data.status === 'ended') handleCallTermination("PANGGILAN SELESAI");
+        });
+    }
+
+    function showIncomingCall(from, data) {
+        document.getElementById('call-screen').style.display = 'flex';
+        document.getElementById('call-target-name').innerText = from;
+        document.getElementById('call-status').innerText = "PANGGILAN MASUK...";
+        document.getElementById('btn-answer').style.display = 'block';
+        window.incomingOffer = data.offer;
+    }
+
+    async function answerCall() {
+        await setupAudio();
+        await peerConnection.setRemoteDescription(new RTCSessionDescription(JSON.parse(window.incomingOffer)));
+        const answer = await peerConnection.createAnswer();
+        await peerConnection.setLocalDescription(answer);
+        db.ref('calls/' + myId).update({ status: 'accepted', answer: JSON.stringify(answer) });
+        document.getElementById('call-status').innerText = "TERHUBUNG";
+        document.getElementById('btn-answer').style.display = 'none';
+    }
+
+    function endCall() {
+        const target = activeChat || document.getElementById('call-target-name').innerText;
+        db.ref('calls/' + target).update({ status: 'ended' });
+        db.ref('calls/' + myId).update({ status: 'ended' });
+        setTimeout(() => { db.ref('calls/' + target).remove(); db.ref('calls/' + myId).remove(); }, 1000);
+        handleCallTermination("DIAKHIRI");
+    }
+
+    function handleCallTermination(msg) {
+        if (localStream) localStream.getTracks().forEach(t => t.stop());
+        if (peerConnection) peerConnection.close();
+        document.getElementById('call-status').innerText = msg;
+        setTimeout(() => { document.getElementById('call-screen').style.display = 'none'; }, 1500);
+    }
+
+    function startApp() {
+        db.ref('calls/' + myId).on('value', snap => {
+            const data = snap.val();
+            if (data && data.status === 'ringing') showIncomingCall(data.from, data);
+            if (data && data.status === 'ended') handleCallTermination("PANGGILAN BERAKHIR");
+        });
+        db.ref('inbox/' + myId).on('child_added', s => {
+            if (!contacts[s.key]) { contacts[s.key] = {id: s.key, name: s.key}; saveC(); renderList(); }
+            if (activeChat !== s.key) showToast("Pesan Baru: " + s.key);
+        });
+        renderList();
+    }
+
     function closeChat() { document.getElementById('chat-screen').style.display = 'none'; activeChat = null; }
     function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.display='block'; setTimeout(()=>t.style.display='none', 3000); }
     function clearChatHistory() { if(confirm("Hapus chat?")) db.ref('chats/'+[myId, activeChat].sort().join("_")).remove(); }
