@@ -12,90 +12,95 @@
         * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; outline: none; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; background: var(--bg); height: 100vh; color: var(--text); overflow: hidden; display: flex; flex-direction: column; }
         
-        /* ANIMASI RAINBOW WELCOME */
-        @keyframes rainbowText {
-            0% { color: #ff0000; } 20% { color: #ff8800; } 40% { color: #ffff00; }
-            60% { color: #00ff00; } 80% { color: #0088ff; } 100% { color: #ff00ff; }
+        /* RAINBOW WELCOME TEXT */
+        #welcome-text {
+            position: fixed; top: 10px; left: 10px; font-size: 12px; font-weight: 900; z-index: 10001;
+            animation: rainbow 3s linear infinite; display: none;
         }
-        #welcome-display {
-            padding: 10px 15px; font-size: 14px; font-weight: 900;
-            animation: rainbowText 3s infinite linear;
-            text-transform: uppercase; letter-spacing: 1px;
-            background: #111b21;
+        @keyframes rainbow {
+            0% { color: red; } 14% { color: orange; } 28% { color: yellow; }
+            42% { color: green; } 56% { color: blue; } 70% { color: indigo; }
+            84% { color: violet; } 100% { color: red; }
         }
 
-        /* ANIMASI MATA & SLIDE */
+        /* ANIMASI MATA SERAM */
         #eye-animation-container {
-            height: 0; overflow: hidden; background: #000;
-            display: flex; align-items: center; justify-content: center;
-            transition: height 0.8s ease-in-out;
+            height: 0; overflow: hidden; background: #000; transition: height 0.5s ease-in-out;
+            display: flex; justify-content: center; align-items: center; position: relative;
         }
-        .eye {
-            width: 60px; height: 30px; background: #fff; border-radius: 50%;
-            position: relative; display: flex; align-items: center; justify-content: center;
-        }
-        .pupil { width: 20px; height: 20px; background: #000; border-radius: 50%; animation: look 2s infinite; }
-        @keyframes look { 0%, 100% { transform: translateX(-10px); } 50% { transform: translateX(10px); } }
-
-        header { background: #111b21; padding: 15px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
-        #search-container { padding: 10px; background: #111b21; border-bottom: 1px solid #222; }
-        #search-input { width: 100%; background: #2a3942; border: none; padding: 10px 15px; border-radius: 8px; color: #fff; }
-        #main-content { flex: 1; overflow-y: auto; padding: 15px; }
+        .eye { width: 40px; height: 20px; background: #fff; border-radius: 50%; position: relative; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px red; }
+        .pupil { width: 15px; height: 15px; background: #000; border-radius: 50%; border: 2px solid red; }
         
-        /* LIST STYLE */
-        .item-wrapper { position: relative; margin-bottom: 15px; border-radius: 12px; background: #111b21; padding: 2px; overflow: hidden; cursor: pointer; }
+        header { background: #111b21; padding: 15px; border-bottom: 1px solid #222; padding-top: 40px; }
+        #search-container { padding: 10px; background: #111b21; border-bottom: 1px solid #222; }
+        #search-input { width: 100%; background: #2a3942; border: none; padding: 10px 15px; border-radius: 8px; color: #fff; font-size: 14px; }
+        
+        #main-content { flex: 1; overflow-y: auto; padding: 15px; transition: transform 0.5s ease-in-out; }
+        .item-wrapper { position: relative; margin-bottom: 12px; border-radius: 12px; background: #111b21; padding: 2px; overflow: hidden; cursor: pointer; }
         .item-wrapper::before { content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: conic-gradient(transparent, transparent, transparent, var(--wa-light)); animation: rotateBorder 4s linear infinite; }
         @keyframes rotateBorder { 100% { transform: rotate(360deg); } }
         .contact-content { position: relative; background: #111b21; border-radius: 10px; padding: 12px; display: flex; align-items: center; gap: 12px; z-index: 1; }
-        .avatar { width: 45px; height: 45px; background: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .avatar { width: 45px; height: 45px; background: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff; border: 1px solid #444; flex-shrink: 0; }
+        
+        .unread-badge { width: 12px; height: 12px; background: var(--wa-light); border-radius: 50%; position: absolute; right: 15px; bottom: 15px; box-shadow: 0 0 10px var(--wa-light); }
+        .last-msg-preview { font-size: 12px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; display: block; }
 
-        /* CHAT UI */
         #chat-screen, #call-screen, #pin-overlay { position: fixed; inset: 0; background: #000; z-index: 10000; display: none; flex-direction: column; }
         #messages { flex: 1; padding: 15px; overflow-y: auto; background: #0b141a; display: flex; flex-direction: column; gap: 8px; }
-        .bubble { max-width: 80%; padding: 8px 12px; border-radius: 12px; font-size: 14px; color: #fff; }
-        .sent { align-self: flex-end; background: var(--bubble-sent); }
-        .received { align-self: flex-start; background: var(--bubble-received); }
-        .img-msg { max-width: 100%; border-radius: 8px; cursor: pointer; margin-bottom: 5px; }
-        .dl-btn { display: block; background: var(--wa-light); color: #000; text-align: center; padding: 5px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-top: 5px; text-decoration: none; }
+        .bubble { max-width: 80%; padding: 8px 12px; border-radius: 12px; font-size: 14px; color: #fff; position: relative; }
+        .sent { align-self: flex-end; background: var(--bubble-sent); border-bottom-right-radius: 2px; }
+        .received { align-self: flex-start; background: var(--bubble-received); border-bottom-left-radius: 2px; }
+        .status-row { font-size: 10px; color: rgba(255,255,255,0.5); text-align: right; margin-top: 4px; }
         
-        .input-area { background: #111b21; padding: 12px; display: flex; gap: 10px; }
+        .img-msg { max-width: 100%; border-radius: 8px; margin-top: 5px; cursor: pointer; border: 1px solid #444; }
+        .dl-btn { background: var(--wa-light); color: #000; border: none; padding: 5px 10px; border-radius: 5px; font-size: 10px; margin-top: 5px; cursor: pointer; font-weight: bold; }
+        
+        .input-area { background: #111b21; padding: 12px; display: flex; gap: 10px; align-items: center; }
         .input-area input { flex: 1; background: #2a3942; border: none; padding: 12px; border-radius: 25px; color: #fff; }
         
-        .fab { position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; border-radius: 50%; background: var(--wa-light); border: none; font-size: 28px; z-index: 100; cursor: pointer; }
-        #pin-overlay { display: flex; justify-content: center; align-items: center; z-index: 10001; }
-        .pin-input { background: #2a3942; border: 2px solid #444; color: #fff; font-size: 24px; text-align: center; padding: 15px; border-radius: 12px; width: 80%; max-width: 250px; }
+        .fab { position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; border-radius: 50%; background: var(--wa-light); border: none; font-size: 28px; z-index: 99; box-shadow: 0 5px 15px rgba(0,255,100,0.3); }
+        #toast { position: fixed; top: 70px; left: 50%; transform: translateX(-50%); background: var(--wa-light); color: #000; padding: 8px 16px; border-radius: 20px; font-size: 12px; z-index: 10002; display: none; }
+        
+        .pin-input { background: #2a3942; border: 2px solid #444; color: #fff; font-size: 24px; text-align: center; padding: 15px; border-radius: 12px; width: 200px; letter-spacing: 5px; margin: 20px; }
+        #pin-overlay { align-items: center; justify-content: center; z-index: 20000; }
+        
+        #call-screen { justify-content: center; align-items: center; background: radial-gradient(circle, #111b21, #000); }
+        .call-btn { border: none; padding: 20px; border-radius: 50%; font-size: 24px; color: #fff; cursor: pointer; }
     </style>
 </head>
 <body>
 
+<div id="welcome-text">SELAMAT DATANG ID: <span id="id-rainbow"></span></div>
+
 <div id="pin-overlay">
-    <div id="pin-ui" style="text-align: center; width: 100%;">
-        <div style="font-size: 20px; font-weight: 900; color: var(--wa-light); margin-bottom: 20px;">SECURITY CHECK</div>
+    <div id="pin-ui" style="text-align: center;">
+        <h2 id="pin-title" style="color: var(--wa-light);">SECURITY CHECK</h2>
         <input type="password" id="pin-field" class="pin-input" placeholder="****" maxlength="6">
-        <button onclick="playClick(); verifyPin()" style="margin-top:20px; background:var(--wa-light); border:none; padding:12px 30px; border-radius:8px; font-weight:bold; width: 250px;">MASUK</button>
-        <p onclick="createNewIdUI()" style="color:var(--wa-light); margin-top:25px; cursor:pointer;">BUAT ID BARU</p>
-        <p onclick="showRecoveryUI()" style="color:#666; font-size:12px; cursor:pointer;">Lupa PIN?</p>
+        <button onclick="playClick(); verifyPin()" style="background:var(--wa-light); border:none; padding:12px 40px; border-radius:8px; font-weight:bold; width:100%;">MASUK</button>
+        <p onclick="playClick(); createNewIdUI()" style="color:var(--wa-light); margin-top:20px; cursor:pointer; font-size: 14px; text-decoration: underline;">BUAT ID BARU</p>
+        <p onclick="playClick(); showRecoveryUI()" style="color:#666; font-size:12px; margin-top:20px; cursor:pointer;">Lupa PIN?</p>
     </div>
     <div id="recovery-ui" style="display: none; text-align: center;">
-        <div style="color: var(--gold); font-weight: bold;">RESET AKUN</div>
-        <input type="text" id="recovery-field" class="pin-input" style="font-size: 14px;" placeholder="Recovery Key...">
-        <button onclick="processRecovery()" style="margin-top:20px; background:var(--gold); border:none; padding:12px 30px; border-radius:8px; width: 250px;">VERIFIKASI</button>
+        <h2 style="color: var(--gold);">RECOVERY AKUN</h2>
+        <input type="text" id="recovery-field" class="pin-input" placeholder="Recovery Key..." style="font-size: 14px; letter-spacing: normal;">
+        <button onclick="playClick(); processRecovery()" style="background:var(--gold); border:none; padding:12px 40px; border-radius:8px; font-weight:bold;">RESET & MASUK</button>
+        <p onclick="hideRecoveryUI()" style="color:#666; margin-top:15px;">Kembali</p>
     </div>
 </div>
 
-<div id="welcome-display"></div>
+<header id="app-header">
+    <div style="font-size: 18px; font-weight: 900; color: var(--wa-light);">DAFTAR KONTAK</div>
+    <div id="my-id-label" style="font-size: 11px; color: #666;"></div>
+</header>
 
 <div id="eye-animation-container">
     <div class="eye"><div class="pupil"></div></div>
+    <div style="width: 20px;"></div>
+    <div class="eye"><div class="pupil"></div></div>
 </div>
 
-<header>
-    <div id="header-title" style="font-size: 18px; font-weight: 900; color: var(--wa-light);">DAFTAR KONTAK</div>
-    <div id="my-id-display" style="font-size: 11px; color: #666;"></div>
-</header>
-
 <div id="search-container">
-    <input type="text" id="search-input" placeholder="Cari ID..." oninput="renderList()">
+    <input type="text" id="search-input" placeholder="Cari ID atau nama..." oninput="renderList()">
 </div>
 
 <div id="main-content">
@@ -105,40 +110,43 @@
 <button class="fab" onclick="addContact()">+</button>
 
 <div id="chat-screen">
-    <div style="background:#202c33; padding:12px; display:flex; align-items:center; gap:12px;">
+    <div style="background:#202c33; padding:12px; display:flex; align-items:center; gap:12px; border-bottom: 1px solid #333; padding-top: 40px;">
         <span onclick="closeChat()" style="font-size:25px; cursor:pointer;">←</span>
         <div id="chat-avatar" class="avatar" style="width:40px; height:40px;">?</div>
         <div style="flex:1">
-            <div id="chat-name" style="font-weight:bold;">User</div>
+            <div id="chat-name" style="font-weight:bold; font-size:15px;">User</div>
             <small id="chat-status-text" style="font-size:11px; color:#aaa;">Offline</small>
         </div>
-        <span onclick="initiateCall()" style="cursor:pointer; font-size: 20px;">📞</span>
+        <span onclick="initiateCall()" style="font-size:20px; cursor:pointer; padding: 10px;">📞</span>
+        <button onclick="clearChatHistory()" style="background:none; border:none; color:#ff4b4b; font-size:12px;">Clear</button>
     </div>
     <div id="messages"></div>
     <div class="input-area">
-        <button onclick="document.getElementById('file-in').click()" style="background:none; border:none; font-size:20px; color:#888;">📎</button>
+        <button onclick="document.getElementById('file-in').click()" style="background:none; border:none; font-size:22px;">📎</button>
         <input type="file" id="file-in" style="display:none" onchange="uploadMedia(this)">
         <input type="text" id="msg-in" placeholder="Ketik pesan..." oninput="handleTyping()">
-        <button onclick="sendMsg()" style="background:none; border:none; color:var(--wa-light); font-size:24px;">➤</button>
+        <button onclick="sendMsg()" style="background:none; border:none; color:var(--wa-light); font-size:26px;">➤</button>
     </div>
 </div>
 
-<div id="call-screen" style="justify-content: center; align-items: center;">
-    <div id="call-status" style="color:var(--wa-light); margin-bottom:10px;">MENGHUBUNGKAN...</div>
-    <div id="call-target-name" style="font-size:24px; font-weight:bold; margin-bottom:50px;">Name</div>
-    <div style="display:flex; gap:30px;">
-        <button id="btn-answer" onclick="answerCall()" style="display:none; background:var(--wa-light); padding:20px; border-radius:50%; border:none;">📞</button>
-        <button onclick="endCall()" style="background:#ff4b4b; padding:20px; border-radius:50%; border:none;">📵</button>
+<div id="call-screen">
+    <div id="call-status" style="color:var(--wa-light); margin-bottom:10px; font-weight:bold;">MENGHUBUNGKAN...</div>
+    <div id="call-target-name" style="font-size:30px; font-weight:900; margin-bottom:50px;">Name</div>
+    <div style="display:flex; gap:40px;">
+        <button id="btn-answer" onclick="answerCall()" style="display:none; background:var(--wa-light);" class="call-btn">📞</button>
+        <button id="btn-end" onclick="endCall()" style="background:#ff4b4b;" class="call-btn">📵</button>
     </div>
     <audio id="remoteAudio" autoplay></audio>
 </div>
+
+<div id="toast"></div>
 
 <audio id="snd-msg" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3"></audio>
 <audio id="snd-ring" src="https://assets.mixkit.co/active_storage/sfx/1359/1359-preview.mp3" loop></audio>
 <audio id="snd-click" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
 
 <script>
-    // Konfigurasi Firebase Anda
+    // FIREBASE CONFIGURATION
     const firebaseConfig = {
         apiKey: "AIzaSyBndqyGrpv7D-gelmif8YELzs-EJj237MA",
         authDomain: "mywa-irfank.firebaseapp.app",
@@ -154,203 +162,269 @@
     let myId = localStorage.getItem('ninja_v45_id');
     let contacts = JSON.parse(localStorage.getItem('ninja_contacts_v45') || "{}");
     let activeChat = null;
-    let localStream, peerConnection;
+    let typingTimeout;
+    let localStream = null;
+    let peerConnection = null;
 
     function playClick() { document.getElementById('snd-click').currentTime = 0; document.getElementById('snd-click').play(); }
 
-    // --- KEAMANAN & LOGIN ---
+    function getSecretKey(targetId) { return [myId, targetId].sort().join("_") + "SECURE_v45"; }
+    function encrypt(text, targetId) { return CryptoJS.AES.encrypt(text, getSecretKey(targetId)).toString(); }
+    function decrypt(cipherText, targetId) {
+        try { return CryptoJS.AES.decrypt(cipherText, getSecretKey(targetId)).toString(CryptoJS.enc.Utf8); } 
+        catch(e) { return "❌ Pesan Terenkripsi"; }
+    }
+
+    // --- LOGIN & PIN SYSTEM ---
     async function initLogin() {
         if (!myId) {
-            await registerNewId();
+            handleNewRegistration();
         } else {
             const snap = await db.ref('users/' + myId).once('value');
             if (!snap.exists() || !snap.val().pin) {
-                // Paksa Pasang PIN jika belum ada
-                let p1 = prompt("Buat PIN Keamanan (6-Digit):");
-                if(p1 && p1.length >= 4) {
-                    const rk = "RK-" + Math.random().toString(36).substring(2, 9).toUpperCase();
-                    alert("SIMPAN RECOVERY KEY ANDA:\n" + rk);
-                    await db.ref('users/' + myId).set({
-                        pin: CryptoJS.SHA256(p1).toString(),
-                        recovery: CryptoJS.SHA256(rk).toString()
-                    });
-                    location.reload();
-                } else { initLogin(); }
+                // PAKSA BUAT PIN JIKA BELUM ADA
+                document.getElementById('pin-overlay').style.display = 'flex';
+                document.getElementById('pin-title').innerText = "BUAT PIN BARU";
+                window.isCreatingPin = true;
             } else {
                 document.getElementById('pin-overlay').style.display = 'flex';
+                window.isCreatingPin = false;
             }
         }
     }
 
-    async function registerNewId() {
-        let id = prompt("Masukkan ID Baru:").trim().toLowerCase().replace(/\s/g,'');
-        if(!id) return initLogin();
-        const check = await db.ref('users/' + id).once('value');
-        if(check.exists()) { alert("ID Terpakai!"); return registerNewId(); }
-        let pin = prompt("Buat PIN:");
-        const rk = "RK-" + Math.random().toString(36).substring(2, 9).toUpperCase();
-        alert("SIMPAN RECOVERY KEY:\n" + rk);
-        await db.ref('users/' + id).set({ pin: CryptoJS.SHA256(pin).toString(), recovery: CryptoJS.SHA256(rk).toString() });
-        localStorage.setItem('ninja_v45_id', id);
-        location.reload();
+    async function handleNewRegistration() {
+        let choice = prompt("Masukkan ID Baru Anda:").trim().toLowerCase().replace(/\s+/g, '');
+        if (!choice) return initLogin();
+        const check = await db.ref('users/' + choice).once('value');
+        if(check.exists()) {
+            alert("ID sudah digunakan!");
+            return handleNewRegistration();
+        }
+        myId = choice;
+        localStorage.setItem('ninja_v45_id', myId);
+        initLogin();
     }
 
     async function verifyPin() {
-        const pin = document.getElementById('pin-field').value;
+        const pinVal = document.getElementById('pin-field').value;
+        if (pinVal.length < 4) return alert("PIN Minimal 4 Digit!");
+
+        if (window.isCreatingPin) {
+            const recoveryKey = "RK-" + Math.random().toString(36).substring(2, 10).toUpperCase();
+            alert("SIMPAN RECOVERY KEY ANDA:\n\n" + recoveryKey);
+            await db.ref('users/' + myId).set({
+                pin: CryptoJS.SHA256(pinVal).toString(),
+                recovery: CryptoJS.SHA256(recoveryKey).toString()
+            });
+            location.reload();
+        } else {
+            const snap = await db.ref('users/' + myId).once('value');
+            if (snap.val().pin === CryptoJS.SHA256(pinVal).toString()) {
+                document.getElementById('pin-overlay').style.display = 'none';
+                document.getElementById('welcome-text').style.display = 'block';
+                document.getElementById('id-rainbow').innerText = myId.toUpperCase();
+                document.getElementById('my-id-label').innerText = "ID: " + myId;
+                startApp();
+            } else { alert("PIN SALAH!"); }
+        }
+    }
+
+    function showRecoveryUI() { document.getElementById('pin-ui').style.display = 'none'; document.getElementById('recovery-ui').style.display = 'block'; }
+    function hideRecoveryUI() { document.getElementById('pin-ui').style.display = 'block'; document.getElementById('recovery-ui').style.display = 'none'; }
+
+    async function processRecovery() {
+        const key = document.getElementById('recovery-field').value.trim();
         const snap = await db.ref('users/' + myId).once('value');
-        if(snap.val().pin === CryptoJS.SHA256(pin).toString()) {
-            document.getElementById('pin-overlay').style.display = 'none';
-            document.getElementById('welcome-display').innerText = "SELAMAT DATANG ID: " + myId;
-            startApp();
-            runEyeAnimation();
-        } else { alert("PIN SALAH"); }
+        if (snap.val().recovery === CryptoJS.SHA256(key).toString()) {
+            let nPin = prompt("Masukkan PIN Baru:");
+            if(nPin) {
+                await db.ref('users/' + myId).update({ pin: CryptoJS.SHA256(nPin).toString() });
+                location.reload();
+            }
+        } else { alert("Key Salah!"); }
+    }
+
+    function createNewIdUI() {
+        if(confirm("Hapus ID lama dan buat baru?")) {
+            localStorage.clear();
+            location.reload();
+        }
     }
 
     // --- ANIMASI MATA ---
-    function runEyeAnimation() {
+    setInterval(() => {
         const container = document.getElementById('eye-animation-container');
+        container.style.height = "60px";
         setTimeout(() => {
-            container.style.height = "100px"; // Buka slide & tunjukkan mata
-            setTimeout(() => {
-                container.style.height = "0"; // Tutup kembali
-            }, 3000);
-        }, 1000);
-    }
+            container.style.height = "0";
+        }, 1500);
+    }, 4000);
 
-    // --- FITUR CHAT & MEDIA ---
-    function uploadMedia(el) {
-        const file = el.files[0];
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const type = file.type.startsWith('image') ? 'img' : 'file';
-            sendRawMsg(e.target.result, type);
-        };
-        reader.readAsDataURL(file);
-    }
+    // --- RENDER & CHAT ---
+    function renderList() {
+        const container = document.getElementById('list-container');
+        const search = document.getElementById('search-input').value.toLowerCase();
+        container.innerHTML = "";
+        
+        Object.values(contacts).forEach(c => {
+            if (c.id.includes(search) || c.name.toLowerCase().includes(search)) {
+                const div = document.createElement('div');
+                div.className = 'item-wrapper';
+                div.innerHTML = `
+                <div class="contact-content">
+                    <div class="avatar">${c.name[0].toUpperCase()}</div>
+                    <div style="flex:1">
+                        <div style="font-weight:bold; font-size:14px;">${c.name}</div>
+                        <small id="st-${c.id}" style="color:#666;">Offline</small>
+                        <span class="last-msg-preview" id="last-${c.id}">...</span>
+                    </div>
+                    <div id="unread-${c.id}" class="unread-badge" style="display:none"></div>
+                    <button onclick="event.stopPropagation(); deleteContact('${c.id}')" style="background:none; border:none; color:#ff4b4b; font-size:10px;">Hapus</button>
+                </div>`;
+                div.onclick = () => openChat(c.id, c.name);
+                container.appendChild(div);
 
-    function sendRawMsg(content, type) {
-        const path = 'chats/' + [myId, activeChat].sort().join("_");
-        db.ref(path).push({
-            s: myId, 
-            c: CryptoJS.AES.encrypt(content, [myId, activeChat].sort().join("_") + "SECURE").toString(),
-            type: type,
-            time: Date.now(),
-            read: false
+                // Update Status & Preview
+                db.ref('presence/' + c.id).on('value', s => {
+                    const el = document.getElementById(`st-${c.id}`);
+                    if(el) el.innerText = s.val() === 'online' ? 'Online' : 'Offline';
+                });
+                
+                db.ref('chats/' + [myId, c.id].sort().join("_")).limitToLast(1).on('value', snap => {
+                    snap.forEach(m => {
+                        const d = m.val();
+                        const p = document.getElementById(`last-${c.id}`);
+                        if(p) p.innerText = d.type === 'txt' ? decrypt(d.c, c.id) : "Lampiran File";
+                        const u = document.getElementById(`unread-${c.id}`);
+                        if(u && !d.read && d.s !== myId) u.style.display = 'block';
+                    });
+                });
+            }
         });
-    }
-
-    function sendMsg() {
-        const inp = document.getElementById('msg-in');
-        if(!inp.value.trim()) return;
-        sendRawMsg(inp.value, 'txt');
-        inp.value = "";
     }
 
     function openChat(id, name) {
         activeChat = id;
         document.getElementById('chat-screen').style.display = 'flex';
+        document.getElementById('welcome-text').style.display = 'none';
         document.getElementById('chat-name').innerText = name;
+        document.getElementById('chat-avatar').innerText = name[0].toUpperCase();
+        
         const path = 'chats/' + [myId, id].sort().join("_");
+        db.ref(path).off();
         db.ref(path).on('value', snap => {
             const box = document.getElementById('messages');
             box.innerHTML = "";
             snap.forEach(m => {
                 const d = m.val();
                 const isMe = d.s === myId;
-                const key = [myId, id].sort().join("_") + "SECURE";
-                const decrypted = CryptoJS.AES.decrypt(d.c, key).toString(CryptoJS.enc.Utf8);
-                
+                const content = decrypt(d.c, id);
                 let html = "";
+                
                 if(d.type === 'img') {
-                    html = `<img src="${decrypted}" class="img-msg" onclick="downloadData('${decrypted}', 'image.png')">
-                            <a href="${decrypted}" download="image.png" class="dl-btn">Download Gambar</a>`;
+                    html = `<img src="${content}" class="img-msg" onclick="downloadFile('${content}', 'IMG.png')"><br><button class="dl-btn" onclick="downloadFile('${content}', 'IMG.png')">Download</button>`;
                 } else if(d.type === 'file') {
-                    html = `<div style="padding:10px; background:#333; border-radius:5px;">📁 File Dokumen</div>
-                            <a href="${decrypted}" download="file" class="dl-btn">Download File</a>`;
+                    html = `<div style="padding:10px; background:rgba(0,0,0,0.2); border-radius:5px;">📁 File Kiriman<br><button class="dl-btn" onclick="downloadFile('${content}', 'FILE')">Download</button></div>`;
                 } else {
-                    html = decrypted;
+                    html = content;
                 }
-                box.innerHTML += `<div class="bubble ${isMe?'sent':'received'}">${html}</div>`;
+
+                box.innerHTML += `<div class="bubble ${isMe?'sent':'received'}">${html}<div class="status-row">${isMe?(d.read?'✓✓':'✓'):''}</div></div>`;
+                if(!isMe && !d.read) db.ref(`${path}/${m.key}`).update({read:true});
             });
             box.scrollTop = box.scrollHeight;
         });
     }
 
-    function downloadData(url, name) {
+    function sendMsg() {
+        const inp = document.getElementById('msg-in');
+        if(!inp.value.trim() || !activeChat) return;
+        const path = 'chats/' + [myId, activeChat].sort().join("_");
+        db.ref(path).push({ s: myId, c: encrypt(inp.value, activeChat), type: 'txt', time: Date.now(), read: false });
+        db.ref('inbox/' + activeChat + '/' + myId).set(Date.now());
+        inp.value = "";
+    }
+
+    function uploadMedia(el) {
+        const file = el.files[0];
+        const reader = new FileReader();
+        reader.onload = () => {
+            const type = file.type.startsWith('image') ? 'img' : 'file';
+            const path = 'chats/' + [myId, activeChat].sort().join("_");
+            db.ref(path).push({ s: myId, c: encrypt(reader.result, activeChat), type: type, time: Date.now(), read: false });
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function downloadFile(url, name) {
         const a = document.createElement('a');
-        a.href = url; a.download = name; a.click();
+        a.href = url; a.download = name;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
     }
 
-    // --- LOGIC LAINNYA ---
-    function renderList() {
-        const container = document.getElementById('list-container');
-        container.innerHTML = "";
-        Object.values(contacts).forEach(c => {
-            const div = document.createElement('div');
-            div.className = 'item-wrapper';
-            div.innerHTML = `<div class="contact-content">
-                <div class="avatar">${c.name[0].toUpperCase()}</div>
-                <div style="flex:1">
-                    <div style="font-weight:bold;">${c.name}</div>
-                    <small id="status-${c.id}">Offline</small>
-                </div>
-            </div>`;
-            div.onclick = () => { playClick(); openChat(c.id, c.name); };
-            container.appendChild(div);
-            
-            db.ref('presence/' + c.id).on('value', s => {
-                const el = document.getElementById('status-' + c.id);
-                if(el) el.innerText = s.val() === 'online' ? 'Online' : 'Offline';
-            });
-        });
+    function closeChat() { 
+        document.getElementById('chat-screen').style.display = 'none'; 
+        document.getElementById('welcome-text').style.display = 'block';
+        activeChat = null; 
     }
-
-    function startApp() {
-        db.ref('presence/' + myId).onDisconnect().set(Date.now());
-        db.ref('presence/' + myId).set('online');
-        renderList();
-        
-        // Listener Panggilan Masuk
-        db.ref('calls/' + myId).on('value', snap => {
-            const data = snap.val();
-            if(data && data.status === 'ringing') {
-                document.getElementById('snd-ring').play();
-                document.getElementById('call-screen').style.display = 'flex';
-                document.getElementById('call-target-name').innerText = data.from;
-                document.getElementById('btn-answer').style.display = 'block';
-                window.incomingOffer = data.offer;
-            }
-            if(data && data.status === 'ended') endCall();
-        });
-    }
-
+    
     function addContact() {
         let id = prompt("Masukkan ID Teman:").trim().toLowerCase();
         if(id && id !== myId) {
-            contacts[id] = {id: id, name: id};
+            contacts[id] = {id, name: id};
             localStorage.setItem('ninja_contacts_v45', JSON.stringify(contacts));
             renderList();
         }
     }
 
-    function closeChat() { document.getElementById('chat-screen').style.display = 'none'; activeChat = null; }
-    function showRecoveryUI() { document.getElementById('pin-ui').style.display = 'none'; document.getElementById('recovery-ui').style.display = 'block'; }
-    function createNewIdUI() { if(confirm("Hapus ID ini dan buat baru?")) { localStorage.clear(); location.reload(); } }
+    function deleteContact(id) {
+        if(confirm("Hapus kontak ini secara permanen?")) {
+            delete contacts[id];
+            localStorage.setItem('ninja_contacts_v45', JSON.stringify(contacts));
+            renderList();
+        }
+    }
 
-    // --- WebRTC (Simple) ---
+    function clearChatHistory() {
+        if(confirm("Hapus semua pesan chat?")) {
+            const path = 'chats/' + [myId, activeChat].sort().join("_");
+            db.ref(path).remove();
+        }
+    }
+
+    function handleTyping() {
+        if(!activeChat) return;
+        db.ref(`typing/${myId}/${activeChat}`).set(true);
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => db.ref(`typing/${myId}/${activeChat}`).set(false), 2000);
+    }
+
+    // --- WebRTC CALL LOGIC ---
     async function setupAudio() {
         localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        peerConnection = new RTCPeerConnection();
-        localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream));
+        peerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+        localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
         peerConnection.ontrack = e => document.getElementById('remoteAudio').srcObject = e.streams[0];
     }
 
     async function initiateCall() {
+        document.getElementById('snd-ring').play();
         await setupAudio();
         document.getElementById('call-screen').style.display = 'flex';
+        document.getElementById('call-target-name').innerText = activeChat;
         const offer = await peerConnection.createOffer();
         await peerConnection.setLocalDescription(offer);
         db.ref('calls/' + activeChat).set({ from: myId, status: 'ringing', offer: JSON.stringify(offer) });
+        
+        db.ref('calls/' + activeChat).on('value', async snap => {
+            if(snap.val()?.answer) {
+                document.getElementById('snd-ring').pause();
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(JSON.parse(snap.val().answer)));
+                document.getElementById('call-status').innerText = "TERHUBUNG";
+            }
+            if(snap.val()?.status === 'ended') endCall();
+        });
     }
 
     async function answerCall() {
@@ -361,15 +435,45 @@
         await peerConnection.setLocalDescription(answer);
         db.ref('calls/' + myId).update({ status: 'accepted', answer: JSON.stringify(answer) });
         document.getElementById('btn-answer').style.display = 'none';
-        document.getElementById('call-status').innerText = "DALAM PANGGILAN";
+        document.getElementById('call-status').innerText = "TERHUBUNG";
     }
 
     function endCall() {
         document.getElementById('snd-ring').pause();
         if(localStream) localStream.getTracks().forEach(t => t.stop());
-        document.getElementById('call-screen').style.display = 'none';
-        if(activeChat) db.ref('calls/' + activeChat).remove();
+        const target = activeChat || document.getElementById('call-target-name').innerText;
+        db.ref('calls/' + target).update({ status: 'ended' });
         db.ref('calls/' + myId).remove();
+        document.getElementById('call-screen').style.display = 'none';
+    }
+
+    // --- APP START ---
+    function startApp() {
+        db.ref('presence/' + myId).set('online');
+        db.ref('presence/' + myId).onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
+        
+        db.ref('calls/' + myId).on('value', snap => {
+            const data = snap.val();
+            if(data?.status === 'ringing') {
+                document.getElementById('snd-ring').play();
+                document.getElementById('call-screen').style.display = 'flex';
+                document.getElementById('call-target-name').innerText = data.from;
+                document.getElementById('btn-answer').style.display = 'block';
+                window.incomingOffer = data.offer;
+            }
+        });
+
+        db.ref('inbox/' + myId).on('child_added', s => {
+            if(!contacts[s.key]) { contacts[s.key] = {id: s.key, name: s.key}; renderList(); }
+            if(activeChat !== s.key) {
+                document.getElementById('snd-msg').play();
+                const t = document.getElementById('toast');
+                t.innerText = "Pesan baru dari " + s.key;
+                t.style.display = 'block';
+                setTimeout(() => t.style.display = 'none', 3000);
+            }
+        });
+        renderList();
     }
 
     initLogin();
