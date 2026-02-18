@@ -26,11 +26,30 @@
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { margin: 0; background: var(--bg-dark); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
+        /* Welcome Animation */
+        #welcome-overlay {
+            position: fixed; inset: 0; background: var(--bg-dark); z-index: 10001;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 1s ease-in-out;
+        }
+        .loader-logo {
+            font-size: 32px; font-weight: 900; color: var(--primary);
+            letter-spacing: 5px; margin-bottom: 20px;
+            animation: pulse 1.5s infinite;
+        }
+        .loading-bar { width: 150px; height: 2px; background: #333; position: relative; overflow: hidden; }
+        .loading-bar::after {
+            content: ''; position: absolute; left: -100%; width: 100%; height: 100%;
+            background: var(--primary); animation: loading 2s infinite;
+        }
+        @keyframes pulse { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
+        @keyframes loading { 100% { left: 100%; } }
+
         /* Auth Screen */
         #auth-overlay { position: fixed; inset: 0; background: var(--bg-dark); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .auth-card { background: var(--bg-panel); padding: 30px; border-radius: 16px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .input-group { margin-bottom: 20px; }
-        input[type="password"], input[type="text"] { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #2a3942; color: white; text-align: center; }
+        input[type="password"], input[type="text"] { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #2a3942; color: white; text-align: center; outline: none; }
 
         /* Header & Info */
         header { background: var(--bg-panel); padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
@@ -65,23 +84,30 @@
         .ticks { font-weight: bold; font-size: 14px; line-height: 1; }
         .ticks.blue { color: var(--read-blue); }
 
-        /* Context Menu (For Delete/Forward) */
+        /* Context Menu */
         .msg-actions { font-size: 10px; color: var(--primary); cursor: pointer; display: block; margin-bottom: 4px; }
 
         /* Input Area */
         .input-bar { background: var(--bg-panel); padding: 10px; display: flex; align-items: center; gap: 10px; }
-        .input-bar input { flex: 1; background: #2a3942; border: none; padding: 12px; border-radius: 20px; color: white; }
+        .input-bar input { flex: 1; background: #2a3942; border: none; padding: 12px; border-radius: 20px; color: white; outline: none; }
 
         /* UI Helpers */
-        .btn { padding: 10px 20px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
+        .btn { padding: 10px 20px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
         .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:active { transform: scale(0.95); }
         .btn-ghost { background: transparent; color: var(--text-dim); }
         .btn-danger { background: #b91c1c; color: white; font-size: 11px; padding: 4px 8px; }
         
-        .floating-btn { position: fixed; bottom: 30px; right: 30px; width: 56px; height: 56px; border-radius: 50%; background: var(--primary); border: none; color: white; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; }
+        .floating-btn { position: fixed; bottom: 30px; right: 30px; width: 56px; height: 56px; border-radius: 50%; background: var(--primary); border: none; color: white; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; z-index: 100; }
     </style>
 </head>
-<body>
+<body onload="showWelcome()">
+
+<div id="welcome-overlay">
+    <div class="loader-logo">PRO CHAT</div>
+    <div style="color: var(--text-dim); font-size: 12px; margin-bottom: 10px;">ENCRYPTING PROTOCOLS...</div>
+    <div class="loading-bar"></div>
+</div>
 
 <div id="auth-overlay">
     <div class="auth-card" id="login-ui">
@@ -129,6 +155,15 @@
 </div>
 
 <script>
+    // --- ANIMASI PEMBUKA ---
+    function showWelcome() {
+        setTimeout(() => {
+            const overlay = document.getElementById('welcome-overlay');
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.style.display = 'none', 1000);
+        }, 2500);
+    }
+
     // --- KONFIGURASI FIREBASE ---
     const firebaseConfig = {
         apiKey: "AIzaSyBndqyGrpv7D-gelmif8YELzs-EJj237MA",
@@ -146,7 +181,7 @@
     let myId = localStorage.getItem('pro_chat_id');
     let contacts = JSON.parse(localStorage.getItem('pro_contacts') || "{}");
     let activeChat = null;
-    let targetOnlineStatus = {}; // Store online status of contacts
+    let targetOnlineStatus = {};
 
     // --- ENKRIPSI ---
     function getSecretKey(targetId) { return [myId, targetId].sort().join("_") + "APP_v5_SALT"; }
@@ -186,12 +221,18 @@
         let id = prompt("Masukkan ID Unik Baru (Tanpa Spasi):");
         if (!id) return;
         id = id.toLowerCase().trim().replace(/\s+/g, '');
+        
         db.ref('users/' + id).once('value', snap => {
-            if (snap.exists()) alert("ID sudah terpakai!");
-            else {
+            if (snap.exists()) {
+                alert("ID sudah terpakai!");
+            } else {
+                // RESET TOTAL JIKA ID BARU DIBUAT
+                localStorage.clear();
                 myId = id;
+                contacts = {};
                 localStorage.setItem('pro_chat_id', myId);
                 document.getElementById('auth-title').innerText = "Buat PIN Baru untuk " + id;
+                alert("ID " + id + " siap digunakan. Masukkan PIN baru untuk mendaftar.");
             }
         });
     }
@@ -278,12 +319,12 @@
         }
     }
 
-    // --- LOGIKA CENTANG (MESSAGE STATUS) ---
+    // --- LOGIKA CENTANG ---
     function getTicksHtml(isMe, read, targetIsOnline) {
-        if (!isMe) return ""; // Centang hanya untuk pengirim
-        if (read) return `<span class="ticks blue">✓✓</span>`; // Dibaca (Biru)
-        if (targetIsOnline) return `<span class="ticks">✓✓</span>`; // Online tapi belum buka chat (Abu 2)
-        return `<span class="ticks">✓</span>`; // Offline (Abu 1)
+        if (!isMe) return "";
+        if (read) return `<span class="ticks blue">✓✓</span>`;
+        if (targetIsOnline) return `<span class="ticks">✓✓</span>`;
+        return `<span class="ticks">✓</span>`;
     }
 
     // --- CHAT LOGIC ---
@@ -306,7 +347,6 @@
                 const content = decrypt(d.c, id);
                 const time = new Date(d.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 
-                // Cek status online target untuk centang
                 const targetOnline = targetOnlineStatus[id] || false;
                 const ticks = getTicksHtml(isMe, d.read, targetOnline);
 
@@ -323,7 +363,6 @@
                 html += `<div class="bubble-time">${time} ${ticks}</div></div>`;
                 container.innerHTML += html;
 
-                // Tandai sudah dibaca jika kita yang menerima pesan
                 if(!isMe && !d.read) db.ref(`${path}/${m.key}`).update({read: true});
             });
             container.scrollTop = container.scrollHeight;
@@ -355,7 +394,6 @@
     function sendFile() {
         const file = document.getElementById('file-input').files[0];
         if(!file || !activeChat) return;
-
         const reader = new FileReader();
         reader.onload = () => {
             const path = 'chats/' + [myId, activeChat].sort().join("_");
@@ -401,9 +439,6 @@
                 contacts[senderId] = { name: "ID Asing: " + senderId };
                 localStorage.setItem('pro_contacts', JSON.stringify(contacts));
                 renderContacts();
-            }
-            if(activeChat !== senderId) {
-                console.log("Pesan baru masuk dari: " + senderId);
             }
         });
     }
